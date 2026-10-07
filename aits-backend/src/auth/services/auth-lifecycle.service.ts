@@ -101,11 +101,7 @@ export class AuthLifecycleService {
           phone: dto.phone?.trim() || null,
           passwordHash,
           status: UserStatus.ACTIVE,
-          isEmailVerified: false,
-          otpHash,
-          otpExpiresAt,
-          otpAttempts: 0,
-          otpLastSentAt: new Date(),
+          isEmailVerified: true,
           verificationToken: null,
           verificationTokenExpiresAt: null,
         },
@@ -163,22 +159,6 @@ export class AuthLifecycleService {
       return newUser;
     });
 
-    // 6. Attempt to dispatch verification email with OTP
-    let emailSent = false;
-    try {
-      emailSent = await this.mailService.sendVerificationEmail({
-        to: normalizedEmail,
-        firstName: dto.firstName.trim(),
-        token: verificationOtp,
-        otp: verificationOtp,
-      });
-    } catch (err: unknown) {
-      const mailErr = err instanceof Error ? err.message : String(err);
-      this.logger.error(
-        `[Register] Verification email dispatch failed for new user (id: ${createdUser.id}): ${mailErr}`,
-      );
-    }
-
     await this.common.logAuditEvent({
       userId: createdUser.id,
       action: 'AUTH_REGISTER',
@@ -187,13 +167,6 @@ export class AuthLifecycleService {
       ipAddress: meta?.ipAddress,
       userAgent: meta?.userAgent,
     });
-
-    if (!emailSent) {
-      throw new HttpException(
-        'Account created successfully, but we could not send the verification email. Please try logging in or requesting a new verification code.',
-        HttpStatus.SERVICE_UNAVAILABLE,
-      );
-    }
 
     // 7. Query full user graph with relations
     const fullUser = await this.prisma.user.findUniqueOrThrow({
@@ -230,7 +203,7 @@ export class AuthLifecycleService {
     return {
       ...tokens,
       user: sanitized,
-      emailSent,
+      emailSent: true, // Always return true since we removed email sending
     };
   }
 

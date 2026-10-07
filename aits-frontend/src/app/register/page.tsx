@@ -157,12 +157,7 @@ export default function RegisterPage() {
 
     if (success) {
       setRegisteredEmail(data.email);
-      setStep(3);
-      setCountdown(60);
-      setOtp(["", "", "", "", "", ""]);
-      setTimeout(() => {
-        inputRefs.current[0]?.focus();
-      }, 150);
+      router.push('/dashboard');
     }
   };
 
