@@ -1,4 +1,4 @@
-import { Injectable, Logger, BadRequestException } from '@nestjs/common';
+import { Injectable, Logger, BadRequestException, HttpException, HttpStatus } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { MailService } from '../../mail/mail.service';
 import { createHash } from 'crypto';
@@ -319,12 +319,19 @@ export class AuthVerificationService {
       },
     });
 
-    await this.mailService.sendVerificationEmail({
+    const emailSent = await this.mailService.sendVerificationEmail({
       to: normalizedEmail,
       firstName: user.firstName,
       token: verificationOtp,
       otp: verificationOtp,
     });
+
+    if (!emailSent) {
+      throw new HttpException(
+        'Account exists, but we could not send the verification email. Please try again later.',
+        HttpStatus.SERVICE_UNAVAILABLE,
+      );
+    }
 
     await this.common.logAuditEvent({
       userId: user.id,

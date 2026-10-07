@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import * as nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 import {
   SendVerificationEmailOptions,
   SendEmployeeWelcomeOptions,
@@ -11,68 +11,37 @@ import { buildEmailTemplate } from '../utils/mail-template.util';
 @Injectable()
 export class MailSenderService {
   private readonly logger = new Logger(MailSenderService.name);
-  private transporter: nodemailer.Transporter | null = null;
+  private resend: Resend | null = null;
 
-  private readonly host = process.env.SMTP_HOST || '';
-  private readonly port = parseInt(process.env.SMTP_PORT || '587', 10);
-  private readonly secure = process.env.SMTP_SECURE === 'true';
-  private readonly user = process.env.SMTP_USER || '';
-  private readonly pass = process.env.SMTP_PASS || '';
+  private readonly resendApiKey = process.env.RESEND_API_KEY || '';
   private readonly from =
-    process.env.SMTP_FROM || 'AITS <ceylonnest.org@gmail.com>';
+    process.env.RESEND_FROM || 'AITS <onboarding@resend.dev>';
   private readonly frontendUrl =
     process.env.FRONTEND_URL || 'http://localhost:3000';
 
   constructor() {
-    this.initTransporter();
+    this.initResend();
   }
 
-  private initTransporter() {
-    if (this.host && this.host.trim() !== '') {
+  private initResend() {
+    if (this.resendApiKey && this.resendApiKey.trim() !== '') {
       try {
-        const sanitizedPass = this.pass ? this.pass.replace(/\s+/g, '') : '';
-
-        // Respect explicitly configured port and secure settings. 
-        // For Gmail: port 465 uses secure: true, port 587 uses secure: false (STARTTLS)
-        this.transporter = nodemailer.createTransport({
-          host: this.host,
-          port: this.port,
-          secure: this.secure,
-          auth:
-            this.user && this.pass
-              ? {
-                  user: this.user,
-                  pass: sanitizedPass || this.pass,
-                }
-              : undefined,
-          tls: {
-            rejectUnauthorized: false,
-          },
-          // Short timeout to prevent hanging the backend (10 seconds)
-          connectionTimeout: 10000,
-          greetingTimeout: 10000,
-          socketTimeout: 10000,
-        });
-
-        this.logger.log(
-          `Nodemailer transporter initialized for host: ${this.host}:${this.port}`,
-        );
+        this.resend = new Resend(this.resendApiKey);
+        this.logger.log('Resend API client initialized successfully');
       } catch (err: unknown) {
         const errorMsg = err instanceof Error ? err.message : String(err);
-        this.logger.warn(
-          `Failed to initialize Nodemailer transporter: ${errorMsg}`,
-        );
-        this.transporter = null;
+        this.logger.warn(`Failed to initialize Resend client: ${errorMsg}`);
+        this.resend = null;
       }
     } else {
       if (process.env.NODE_ENV === 'production') {
-        this.logger.warn('SMTP_HOST is empty in production. Email dispatch is disabled.');
+        this.logger.warn('RESEND_API_KEY is missing in production. Email dispatch is disabled.');
       } else {
         this.logger.log(
-          'SMTP_HOST is empty. Running in development/mock mail mode (verification links will be logged to console).',
+          'RESEND_API_KEY is empty. Running in development/mock mail mode (verification links will be logged to console).',
         );
       }
-      this.transporter = null;
+      this.resend = null;
     }
   }
 
@@ -155,20 +124,26 @@ export class MailSenderService {
       contentHtml,
     });
 
-    if (this.transporter) {
+    if (this.resend) {
       try {
-        await this.transporter.sendMail({
+        const { data, error } = await this.resend.emails.send({
           from: this.from,
           to,
           subject: `AITS Verification Code: ${displayOtp}`,
           html: htmlContent,
         });
-        this.logger.log(`Verification OTP successfully dispatched to ${to}`);
+
+        if (error) {
+          this.logger.error(`Resend API Error sending verification to ${to}: ${error.message}`);
+          return false;
+        }
+
+        this.logger.log(`Verification OTP successfully dispatched to ${to} (ID: ${data?.id})`);
         return true;
       } catch (error: unknown) {
         const errorMsg = error instanceof Error ? error.message : String(error);
         this.logger.error(
-          `Failed to send email via SMTP to ${to}: ${errorMsg}`,
+          `Failed to send email via Resend to ${to}: ${errorMsg}`,
         );
         this.logFallbackVerification(to, displayOtp, verificationUrl);
         return false;
@@ -259,19 +234,25 @@ export class MailSenderService {
       contentHtml,
     });
 
-    if (this.transporter) {
+    if (this.resend) {
       try {
-        await this.transporter.sendMail({
+        const { data, error } = await this.resend.emails.send({
           from: this.from,
           to,
           subject: `Welcome to ${farmName} on AITS`,
           html: htmlContent,
         });
-        this.logger.log(`Employee welcome email sent to ${to}`);
+
+        if (error) {
+          this.logger.error(`Resend API Error sending welcome email to ${to}: ${error.message}`);
+          return false;
+        }
+
+        this.logger.log(`Employee welcome email sent to ${to} (ID: ${data?.id})`);
         return true;
       } catch (error: unknown) {
         const errorMsg = error instanceof Error ? error.message : String(error);
-        this.logger.error(`Failed to send welcome email to ${to}: ${errorMsg}`);
+        this.logger.error(`Failed to send welcome email via Resend to ${to}: ${errorMsg}`);
         return false;
       }
     }
@@ -341,20 +322,26 @@ export class MailSenderService {
       contentHtml,
     });
 
-    if (this.transporter) {
+    if (this.resend) {
       try {
-        await this.transporter.sendMail({
+        const { data, error } = await this.resend.emails.send({
           from: this.from,
           to,
           subject: 'AITS Account - Reset Your Password',
           html: htmlContent,
         });
-        this.logger.log(`Password reset email sent to ${to}`);
+
+        if (error) {
+          this.logger.error(`Resend API Error sending password reset to ${to}: ${error.message}`);
+          return false;
+        }
+
+        this.logger.log(`Password reset email sent to ${to} (ID: ${data?.id})`);
         return true;
       } catch (error: unknown) {
         const errorMsg = error instanceof Error ? error.message : String(error);
         this.logger.error(
-          `Failed to send password reset email to ${to}: ${errorMsg}`,
+          `Failed to send password reset email via Resend to ${to}: ${errorMsg}`,
         );
         return false;
       }
@@ -484,20 +471,26 @@ export class MailSenderService {
       contentHtml,
     });
 
-    if (this.transporter) {
+    if (this.resend) {
       try {
-        await this.transporter.sendMail({
+        const { data, error } = await this.resend.emails.send({
           from: this.from,
           to,
           subject: `AITS Schedule Alert: ${eventTitle} (#${animalNumber})`,
           html: htmlContent,
         });
-        this.logger.log(`Schedule alert email sent to ${to}`);
+
+        if (error) {
+          this.logger.error(`Resend API Error sending schedule alert to ${to}: ${error.message}`);
+          return false;
+        }
+
+        this.logger.log(`Schedule alert email sent to ${to} (ID: ${data?.id})`);
         return true;
       } catch (error: unknown) {
         const errorMsg = error instanceof Error ? error.message : String(error);
         this.logger.error(
-          `Failed to send schedule alert email to ${to}: ${errorMsg}`,
+          `Failed to send schedule alert email via Resend to ${to}: ${errorMsg}`,
         );
         return false;
       }
