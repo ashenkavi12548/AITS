@@ -64,7 +64,7 @@ export interface SanitizedUser {
   farmRoles?: Record<string, string>;
   ownedFarms?: string[];
   status: UserStatus;
-  isEmailVerified: boolean;
+
   primaryFarmId?: string | null;
   primaryFarmName?: string | null;
   farmRole?: string | null;

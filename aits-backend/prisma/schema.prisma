@@ -355,13 +355,6 @@ model User {
   passwordHash               String
   profileImageUrl            String?
   status                     UserStatus @default(ACTIVE)
-  isEmailVerified            Boolean    @default(false)
-  verificationToken          String?
-  verificationTokenExpiresAt DateTime?
-  otpHash                    String?
-  otpExpiresAt               DateTime?
-  otpAttempts                Int        @default(0)
-  otpLastSentAt              DateTime?
   failedLoginAttempts        Int        @default(0)
   lockoutUntil               DateTime?
   lastLoginAt                DateTime?

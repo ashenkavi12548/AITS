@@ -44,7 +44,7 @@ export interface FarmEmployee {
     phone?: string | null;
     profileImageUrl?: string | null;
     status: string;
-    isEmailVerified: boolean;
+
     lastLoginAt?: string | null;
     createdAt: string;
     permissions: string[];

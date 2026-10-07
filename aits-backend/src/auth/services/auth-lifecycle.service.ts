@@ -5,14 +5,11 @@ import {
   ConflictException,
   ForbiddenException,
   BadRequestException,
-  HttpException,
-  HttpStatus,
 } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { MailService } from '../../mail/mail.service';
 import { RoleName, UserStatus } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
-import { createHash } from 'crypto';
 import { LoginDto, RegisterDto } from '../dto';
 import { AuthResponse, RequestClientMeta } from '../types/auth.types';
 import { AuthCommonService } from './auth-common.service';
@@ -27,7 +24,7 @@ export class AuthLifecycleService {
     private readonly mailService: MailService,
     private readonly common: AuthCommonService,
     private readonly tokens: AuthTokensService,
-  ) {}
+  ) { }
 
   async register(
     dto: RegisterDto,
@@ -94,9 +91,6 @@ export class AuthLifecycleService {
           phone: dto.phone?.trim() || null,
           passwordHash,
           status: UserStatus.ACTIVE,
-          isEmailVerified: true,
-          verificationToken: null,
-          verificationTokenExpiresAt: null,
         },
       });
 
@@ -233,9 +227,9 @@ export class AuthLifecycleService {
         OR: isEmail
           ? [{ email: rawIdentifier.toLowerCase() }]
           : [
-              { email: rawIdentifier.toLowerCase() },
-              ...uniquePhoneVariants.map((p) => ({ phone: p })),
-            ],
+            { email: rawIdentifier.toLowerCase() },
+            ...uniquePhoneVariants.map((p) => ({ phone: p })),
+          ],
         deletedAt: null,
       },
       include: {
@@ -290,8 +284,7 @@ export class AuthLifecycleService {
         userAgent: meta?.userAgent,
       });
       throw new UnauthorizedException(
-        `Account is temporarily locked due to repeated failed login attempts. Please try again in ${waitMinutes} minute${
-          waitMinutes > 1 ? 's' : ''
+        `Account is temporarily locked due to repeated failed login attempts. Please try again in ${waitMinutes} minute${waitMinutes > 1 ? 's' : ''
         }.`,
       );
     }

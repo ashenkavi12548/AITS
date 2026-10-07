@@ -19,7 +19,7 @@ import { AuthCommonService } from './services/auth-common.service';
 import { AuthTokensService } from './services/auth-tokens.service';
 import { AuthLifecycleService } from './services/auth-lifecycle.service';
 import { AuthProfileService } from './services/auth-profile.service';
-import { AuthVerificationService } from './services/auth-verification.service';
+
 
 // Re-export all types for backward compatibility
 export type {
@@ -40,7 +40,6 @@ export class AuthService implements OnModuleInit {
     public readonly tokens: AuthTokensService,
     public readonly lifecycle: AuthLifecycleService,
     public readonly profile: AuthProfileService,
-    public readonly verification: AuthVerificationService,
   ) {}
 
   async onModuleInit() {

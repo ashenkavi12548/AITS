@@ -26,7 +26,7 @@ export interface AuthUser {
   farmPermissions?: Record<string, string[]>;
   farmRoles?: Record<string, string>;
   status: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED' | 'PENDING';
-  isEmailVerified?: boolean;
+
   primaryFarmId?: string | null;
   primaryFarmName?: string | null;
   farmRole?: FarmUserRole | null;

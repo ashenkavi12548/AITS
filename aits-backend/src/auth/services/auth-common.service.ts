@@ -113,7 +113,7 @@ export class AuthCommonService {
       roles,
       permissions,
       status: user.status,
-      isEmailVerified: Boolean(user.isEmailVerified),
+
       primaryFarmId,
       primaryFarmName,
       farmRole,

@@ -34,7 +34,6 @@ export default function RegisterPage() {
   const router = useRouter();
   const {
     register,
-    verifyOtp,
     isAuthenticated,
     isInitialized,
     isLoading,

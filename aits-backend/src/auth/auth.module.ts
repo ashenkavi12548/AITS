@@ -9,7 +9,7 @@ import { AuthCommonService } from './services/auth-common.service';
 import { AuthTokensService } from './services/auth-tokens.service';
 import { AuthLifecycleService } from './services/auth-lifecycle.service';
 import { AuthProfileService } from './services/auth-profile.service';
-import { AuthVerificationService } from './services/auth-verification.service';
+
 import { FarmAccessService } from './services/farm-access.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
@@ -31,7 +31,7 @@ import { PermissionsGuard } from './guards/permissions.guard';
     AuthTokensService,
     AuthLifecycleService,
     AuthProfileService,
-    AuthVerificationService,
+
     FarmAccessService,
     AuthService,
     JwtStrategy,
@@ -46,7 +46,7 @@ import { PermissionsGuard } from './guards/permissions.guard';
     AuthTokensService,
     AuthLifecycleService,
     AuthProfileService,
-    AuthVerificationService,
+
     FarmAccessService,
     AuthService,
     JwtAuthGuard,
