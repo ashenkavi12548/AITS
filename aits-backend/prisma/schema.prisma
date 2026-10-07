@@ -1,0 +1,1762 @@
+// Production-Ready Prisma Schema for Animal Identification & Traceability System (AITS)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ==========================================
+// ENUMS
+// ==========================================
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  PENDING
+}
+
+enum RoleName {
+  MANAGER
+  FARMER
+  VETERINARIAN
+  WORKER
+}
+
+enum AnimalGender {
+  MALE
+  FEMALE
+}
+
+enum AnimalStatus {
+  ACTIVE
+  SOLD
+  TRANSFERRED
+  DECEASED
+  MISSING
+  QUARANTINED
+}
+
+enum IdentifierType {
+  QR
+  RFID
+  EAR_TAG
+  NATIONAL_ID
+  OTHER
+}
+
+enum HealthStatus {
+  HEALTHY
+  SICK
+  UNDER_TREATMENT
+  RECOVERED
+  QUARANTINED
+}
+
+enum VaccinationStatus {
+  SCHEDULED
+  COMPLETED
+  MISSED
+  CANCELLED
+}
+
+enum BreedingStatus {
+  PLANNED
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum PregnancyStatus {
+  PENDING
+  CONFIRMED
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum MovementType {
+  TRANSFER
+  SALE
+  PURCHASE
+  TEMPORARY
+  VETERINARY
+  QUARANTINE
+  OTHER
+}
+
+enum DailyActivityType {
+  FEEDING
+  WEIGHT_CHECK
+  HEALTH_CHECK
+  GENERAL_OBSERVATION
+}
+
+enum ActivitySession {
+  MORNING
+  AFTERNOON
+  EVENING
+  NIGHT
+}
+
+enum ActivityStatus {
+  COMPLETED
+  PENDING
+  CANCELLED
+}
+
+enum FarmTransferStatus {
+  SCHEDULED
+  IN_TRANSIT
+  ARRIVED
+  COMPLETED
+  CANCELLED
+}
+
+enum FarmTransferReason {
+  PERMANENT_TRANSFER
+  TEMPORARY_TRANSFER
+  VETERINARY_VISIT
+  BREEDING_PURPOSE
+  GRAZING
+  SALE_OR_MARKET
+  RETURN_TO_ORIGINAL_FARM
+  OTHER
+}
+
+enum DocumentStatus {
+  ACTIVE
+  EXPIRED
+  ARCHIVED
+}
+
+enum SyncStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  PARTIALLY_COMPLETED
+  FAILED
+  CONFLICTED
+}
+
+enum SyncOperation {
+  CREATE
+  UPDATE
+  DELETE
+}
+
+enum NotificationType {
+  VACCINATION
+  HEALTH
+  FEEDING
+  DOCUMENT_EXPIRY
+  SYNC
+  BREEDING
+  MOVEMENT
+  SYSTEM
+}
+
+enum NotificationPriority {
+  LOW
+  NORMAL
+  HIGH
+  CRITICAL
+}
+
+enum TaskPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum TaskCategory {
+  ANIMAL_CARE
+  FEEDING
+  MILKING
+  HEALTH
+  CLEANING
+  BREEDING
+  MAINTENANCE
+  GENERAL
+}
+
+enum MilkingSession {
+  MORNING
+  AFTERNOON
+  EVENING
+}
+
+enum QRCodeStatus {
+  ACTIVE
+  INACTIVE
+  REVOKED
+  REPLACED
+}
+
+enum FarmStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  PENDING
+}
+
+enum FarmUserRole {
+  OWNER
+  MANAGER
+  VETERINARIAN
+  WORKER
+  AUDITOR
+}
+
+enum FarmUserStatus {
+  ACTIVE
+  INACTIVE
+  PENDING
+}
+
+enum DiseaseStatus {
+  ACTIVE
+  RECOVERED
+  CHRONIC
+}
+
+enum TreatmentStatus {
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum BreedingMethod {
+  ARTIFICIAL_INSEMINATION
+  NATURAL
+}
+
+enum TransferStatus {
+  PENDING
+  APPROVED
+  COMPLETED
+  REJECTED
+  CANCELLED
+}
+
+enum QuarantineStatus {
+  ACTIVE
+  RELEASED
+  EXTENDED
+}
+
+enum ClearanceStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  EXPIRED
+}
+
+enum LabResultStatus {
+  PENDING
+  NEGATIVE
+  POSITIVE
+  FLAGGED
+}
+
+enum HealthCaseStatus {
+  OPEN
+  UNDER_INVESTIGATION
+  DIAGNOSED
+  UNDER_TREATMENT
+  UNDER_OBSERVATION
+  CONTAINED
+  FOLLOW_UP
+  RESOLVED
+  CLOSED
+}
+
+enum ClinicalCertainty {
+  SUSPECTED
+  PROBABLE
+  CONFIRMED
+  RULED_OUT
+}
+
+enum BiosecurityRiskLevel {
+  LOW
+  MODERATE
+  HIGH
+  CRITICAL
+}
+
+enum WithdrawalProduct {
+  MILK
+  MEAT
+  EGGS
+  OTHER
+}
+
+enum WithdrawalStatus {
+  ACTIVE
+  EXPIRED
+  CANCELLED
+}
+
+enum LabTestStage {
+  REQUESTED
+  COLLECTED
+  SUBMITTED
+  IN_TESTING
+  COMPLETED
+  CANCELLED
+}
+
+enum MovementRestrictionType {
+  TRANSFER
+  SALE
+  TRANSPORT
+  SLAUGHTER
+  ALL
+}
+
+enum AlertSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum FollowUpStatus {
+  PENDING
+  COMPLETED
+  MISSED
+  CANCELLED
+}
+
+// ==========================================
+// MODELS
+// ==========================================
+
+// --- AUTHENTICATION & AUTHORIZATION ---
+
+model User {
+  id                         String     @id @default(uuid()) @db.Uuid
+  firstName                  String
+  lastName                   String
+  email                      String     @unique
+  phone                      String?
+  passwordHash               String
+  profileImageUrl            String?
+  status                     UserStatus @default(ACTIVE)
+  isEmailVerified            Boolean    @default(false)
+  verificationToken          String?
+  verificationTokenExpiresAt DateTime?
+  otpHash                    String?
+  otpExpiresAt               DateTime?
+  otpAttempts                Int        @default(0)
+  otpLastSentAt              DateTime?
+  failedLoginAttempts        Int        @default(0)
+  lockoutUntil               DateTime?
+  lastLoginAt                DateTime?
+  deletedAt                  DateTime?
+  createdAt                  DateTime   @default(now())
+  updatedAt                  DateTime   @updatedAt
+
+  // Relationships
+  sessions                   UserSession[]
+  ownedFarms                 Farm[]                      @relation("FarmOwner")
+  farmMemberships            FarmUser[]
+  userRoles                  UserRole[]
+  recordedHealthRecords      HealthRecord[]
+  diagnosedDiseases          AnimalDisease[]
+  administeredTreatments     Treatment[]
+  administeredVaccinations   Vaccination[]
+  veterinaryVisits           VeterinaryVisit[]
+  recordedFeeding            FeedingRecord[]
+  recordedMilk               MilkProduction[]
+  breedingAsTechnician       BreedingRecord[]
+  recordedMovements          AnimalMovement[]
+  previousOwnershipTransfers OwnershipTransfer[]         @relation("PreviousOwner")
+  newOwnershipTransfers      OwnershipTransfer[]         @relation("NewOwner")
+  uploadedDocuments          Document[]
+  notifications              Notification[]
+  notificationPreference     NotificationPreference?
+  syncBatches                SyncBatch[]
+  auditLogs                  AuditLog[]
+  updatedSettings            SystemSetting[]
+  orderedQuarantines         QuarantineRecord[]          @relation("QuarantineOrderedBy")
+  releasedQuarantines        QuarantineRecord[]          @relation("QuarantineReleasedBy")
+  issuedClearances           HealthClearance[]           @relation("ClearanceIssuedBy")
+  approvedClearances         HealthClearance[]           @relation("ClearanceApprovedBy")
+  revokedClearances          HealthClearance[]           @relation("ClearanceRevokedBy")
+  requestedLabResults        LabResult[]                 @relation("LabRequestedBy")
+  vetHealthCases             HealthCase[]                @relation("VetHealthCases")
+  clinicalExams              ClinicalExamination[]       @relation("ExamVet")
+  assessedRisk               BiosecurityRiskAssessment[] @relation("RiskAssessedBy")
+  imposedRestrictions        MovementRestriction[]       @relation("RestrictionImposedBy")
+  liftedRestrictions         MovementRestriction[]       @relation("RestrictionLiftedBy")
+  collectedLabSamples        LabTestRecord[]             @relation("LabSampleCollectedBy")
+  reviewedLabTests           LabTestRecord[]             @relation("LabReviewedBy")
+  resolvedAlerts             HealthAlert[]               @relation("AlertResolvedBy")
+  assignedFollowUps          FollowUp[]                  @relation("AssignedVetFollowUps")
+  recordedDailyActivities    DailyActivityLog[]
+  recordedFarmTransfers      FarmTransfer[]
+
+  // Task Management
+  assignedTasks  Task[]          @relation("TasksAssignedTo")
+  createdTasks   Task[]          @relation("TasksCreatedBy")
+  completedTasks Task[]          @relation("TasksCompletedBy")
+  calendarEvents CalendarEvent[]
+
+  @@index([email])
+  @@index([deletedAt])
+}
+
+model Role {
+  id          String    @id @default(uuid()) @db.Uuid
+  name        String    @unique
+  description String?
+  deletedAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  userRoles       UserRole[]
+  rolePermissions RolePermission[]
+}
+
+model Permission {
+  id          String    @id @default(uuid()) @db.Uuid
+  name        String    @unique
+  description String?
+  deletedAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  rolePermissions RolePermission[]
+}
+
+model UserRole {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  roleId    String   @db.Uuid
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, roleId])
+  @@index([userId])
+  @@index([roleId])
+}
+
+model RolePermission {
+  id           String   @id @default(uuid()) @db.Uuid
+  roleId       String   @db.Uuid
+  permissionId String   @db.Uuid
+  createdAt    DateTime @default(now())
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+  @@index([roleId])
+  @@index([permissionId])
+}
+
+// --- FARM MANAGEMENT ---
+
+model Farm {
+  id                 String     @id @default(uuid()) @db.Uuid
+  ownerId            String     @db.Uuid
+  name               String
+  registrationNumber String     @unique
+  address            String
+  province           String
+  district           String
+  city               String
+  latitude           Float?
+  longitude          Float?
+  contactNumber      String
+  farmType           String
+  status             FarmStatus @default(ACTIVE)
+  deletedAt          DateTime?
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+
+  owner                User                        @relation("FarmOwner", fields: [ownerId], references: [id], onDelete: Restrict)
+  users                FarmUser[]
+  animals              Animal[]
+  milkProduction       MilkProduction[]
+  movementsFrom        AnimalMovement[]            @relation("FromFarm")
+  movementsTo          AnimalMovement[]            @relation("ToFarm")
+  documents            Document[]
+  quarantineZones      QuarantineZone[]
+  quarantineRecords    QuarantineRecord[]
+  healthClearances     HealthClearance[]
+  labResults           LabResult[]
+  vaccinationPrograms  VaccinationProgram[]
+  healthCases          HealthCase[]
+  clinicalExaminations ClinicalExamination[]
+  withdrawals          WithdrawalPeriod[]
+  riskAssessments      BiosecurityRiskAssessment[]
+  exposureRecords      ExposureRecord[]
+  movementRestrictions MovementRestriction[]
+  labTestRecords       LabTestRecord[]
+  healthAlerts         HealthAlert[]
+  followUps            FollowUp[]
+  dailyActivityLogs    DailyActivityLog[]
+  farmTransfersFrom    FarmTransfer[]              @relation("FarmTransferFrom")
+  farmTransfersTo      FarmTransfer[]              @relation("FarmTransferTo")
+  notifications        Notification[]
+  tasks                Task[]
+  calendarEvents       CalendarEvent[]
+
+  @@index([registrationNumber])
+  @@index([ownerId])
+  @@index([deletedAt])
+}
+
+model FarmUser {
+  id          String         @id @default(uuid()) @db.Uuid
+  farmId      String         @db.Uuid
+  userId      String         @db.Uuid
+  role        FarmUserRole   @default(WORKER)
+  permissions String[]       @default([])
+  joinedAt    DateTime       @default(now())
+  status      FarmUserStatus @default(ACTIVE)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  managerId    String?    @db.Uuid
+  manager      FarmUser?  @relation("FarmUserManager", fields: [managerId], references: [id], onDelete: SetNull)
+  managedStaff FarmUser[] @relation("FarmUserManager")
+
+  farm Farm @relation(fields: [farmId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([farmId, userId])
+  @@index([farmId])
+  @@index([userId])
+}
+
+// --- CALENDAR EVENTS ---
+
+model CalendarEvent {
+  id          String   @id @default(uuid()) @db.Uuid
+  farmId      String   @db.Uuid
+  title       String
+  description String?
+  date        DateTime
+  startTime   String?
+  endTime     String?
+  isAllDay    Boolean  @default(true)
+  color       String?
+  category    String?
+  animalId    String?  @db.Uuid
+  createdById String   @db.Uuid
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  farm      Farm    @relation(fields: [farmId], references: [id], onDelete: Cascade)
+  animal    Animal? @relation(fields: [animalId], references: [id], onDelete: SetNull)
+  createdBy User    @relation(fields: [createdById], references: [id], onDelete: Restrict)
+
+  @@index([farmId])
+  @@index([date])
+  @@index([animalId])
+}
+
+// --- ANIMAL MANAGEMENT & GENEALOGY ---
+
+model Animal {
+  id               String       @id @default(uuid()) @db.Uuid
+  farmId           String       @db.Uuid
+  animalNumber     String       @unique
+  name             String?
+  species          String
+  breed            String
+  gender           AnimalGender
+  dateOfBirth      DateTime
+  color            String?
+  weight           Float?
+  imageUrl         String?
+  motherId         String?      @db.Uuid
+  fatherId         String?      @db.Uuid
+  status           AnimalStatus @default(ACTIVE)
+  registrationDate DateTime     @default(now())
+  deletedAt        DateTime?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  // Explicit, unambiguous self-referencing genealogy relations
+  mother           Animal?  @relation("AnimalMother", fields: [motherId], references: [id], onDelete: SetNull)
+  father           Animal?  @relation("AnimalFather", fields: [fatherId], references: [id], onDelete: SetNull)
+  childrenAsMother Animal[] @relation("AnimalMother")
+  childrenAsFather Animal[] @relation("AnimalFather")
+
+  farm                  Farm                        @relation(fields: [farmId], references: [id], onDelete: Restrict)
+  identifiers           AnimalIdentifier[]
+  qrCodes               QRCode[]
+  healthRecords         HealthRecord[]
+  diseases              AnimalDisease[]
+  treatments            Treatment[]
+  vaccinations          Vaccination[]
+  veterinaryVisits      VeterinaryVisit[]
+  feedingRecords        FeedingRecord[]
+  milkProduction        MilkProduction[]
+  femaleBreedingRecords BreedingRecord[]            @relation("FemaleAnimal")
+  maleBreedingRecords   BreedingRecord[]            @relation("MaleAnimal")
+  pregnancies           Pregnancy[]
+  calvingRecords        CalvingRecord[]
+  movements             AnimalMovement[]
+  ownershipTransfers    OwnershipTransfer[]
+  documents             Document[]
+  quarantineRecords     QuarantineRecord[]
+  healthClearances      HealthClearance[]
+  labResults            LabResult[]
+  healthCases           HealthCase[]
+  clinicalExaminations  ClinicalExamination[]
+  withdrawals           WithdrawalPeriod[]
+  riskAssessments       BiosecurityRiskAssessment[]
+  sourceExposures       ExposureRecord[]            @relation("SourceAnimalExposures")
+  contactExposures      ExposureRecord[]            @relation("ContactAnimalExposures")
+  movementRestrictions  MovementRestriction[]
+  labTestRecords        LabTestRecord[]
+  healthAlerts          HealthAlert[]
+  followUps             FollowUp[]
+  dailyActivityLogs     DailyActivityLog[]
+  farmTransfers         FarmTransfer[]
+  tasks                 Task[]
+  calendarEvents        CalendarEvent[]
+
+  @@index([animalNumber])
+  @@index([farmId])
+  @@index([status])
+  @@index([dateOfBirth])
+  @@index([motherId])
+  @@index([fatherId])
+  @@index([deletedAt])
+}
+
+// --- ANIMAL IDENTIFICATION ---
+
+model AnimalIdentifier {
+  id              String         @id @default(uuid()) @db.Uuid
+  animalId        String         @db.Uuid
+  identifierType  IdentifierType
+  identifierValue String         @unique
+  isPrimary       Boolean        @default(false)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  animal Animal @relation(fields: [animalId], references: [id], onDelete: Cascade)
+
+  @@index([identifierValue])
+  @@index([animalId])
+}
+
+model QRCode {
+  id          String       @id @default(uuid()) @db.Uuid
+  animalId    String       @db.Uuid
+  qrValue     String       @unique
+  qrImageUrl  String
+  generatedAt DateTime     @default(now())
+  activatedAt DateTime?
+  status      QRCodeStatus @default(ACTIVE)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  animal Animal @relation(fields: [animalId], references: [id], onDelete: Cascade)
+
+  @@index([qrValue])
+  @@index([animalId])
+}
+
+// --- HEALTH MANAGEMENT ---
+
+model HealthRecord {
+  id                String       @id @default(uuid()) @db.Uuid
+  animalId          String       @db.Uuid
+  recordedById      String       @db.Uuid
+  recordDate        DateTime
+  healthStatus      HealthStatus
+  severity          String?
+  symptoms          String?
+  diagnosis         String?
+  notes             String?
+  labResultRequired Boolean      @default(false)
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  animal     Animal      @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  recordedBy User        @relation(fields: [recordedById], references: [id], onDelete: Restrict)
+  treatments Treatment[]
+  labResults LabResult[]
+
+  @@index([animalId])
+  @@index([recordedById])
+  @@index([healthStatus])
+}
+
+model Disease {
+  id                          String    @id @default(uuid()) @db.Uuid
+  code                        String?
+  name                        String    @unique
+  description                 String?
+  severity                    String?
+  contagious                  Boolean   @default(false)
+  reportable                  Boolean   @default(false)
+  quarantineRequired          Boolean   @default(false)
+  movementRestrictionRequired Boolean   @default(false)
+  defaultWithdrawalDays       Int       @default(0)
+  active                      Boolean   @default(true)
+  deletedAt                   DateTime?
+  createdAt                   DateTime  @default(now())
+  updatedAt                   DateTime  @updatedAt
+
+  animalDiseases      AnimalDisease[]
+  vaccinationPrograms VaccinationProgram[]
+
+  @@index([code])
+}
+
+model AnimalDisease {
+  id            String        @id @default(uuid()) @db.Uuid
+  animalId      String        @db.Uuid
+  diseaseId     String        @db.Uuid
+  diagnosedById String        @db.Uuid
+  caseId        String?       @db.Uuid
+  diagnosedDate DateTime
+  recoveryDate  DateTime?
+  status        DiseaseStatus @default(ACTIVE)
+  notes         String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  animal      Animal      @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  disease     Disease     @relation(fields: [diseaseId], references: [id], onDelete: Restrict)
+  diagnosedBy User        @relation(fields: [diagnosedById], references: [id], onDelete: Restrict)
+  case        HealthCase? @relation(fields: [caseId], references: [id], onDelete: SetNull)
+
+  @@index([animalId])
+  @@index([diseaseId])
+  @@index([caseId])
+}
+
+model Medication {
+  id                 String   @id @default(uuid()) @db.Uuid
+  code               String   @unique
+  genericName        String
+  brandName          String?
+  category           String
+  activeIngredient   String?
+  formulation        String?
+  strength           String?
+  defaultDose        String?
+  defaultRoute       String?
+  withdrawalMilkDays Int      @default(0)
+  withdrawalMeatDays Int      @default(0)
+  active             Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  treatments Treatment[]
+}
+
+model LabTestCatalog {
+  id             String   @id @default(uuid()) @db.Uuid
+  code           String   @unique
+  name           String
+  category       String
+  sampleType     String
+  referenceRange String?
+  turnaroundDays Int      @default(1)
+  active         Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  labTests LabTestRecord[]
+}
+
+model VaccinationProgram {
+  id                  String   @id @default(uuid()) @db.Uuid
+  farmId              String?  @db.Uuid
+  diseaseId           String   @db.Uuid
+  name                String
+  targetSpecies       String   @default("BOVINE")
+  startAgeMonths      Int      @default(3)
+  boosterIntervalDays Int      @default(180)
+  mandatory           Boolean  @default(false)
+  active              Boolean  @default(true)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  farm    Farm?   @relation(fields: [farmId], references: [id], onDelete: Cascade)
+  disease Disease @relation(fields: [diseaseId], references: [id], onDelete: Restrict)
+
+  @@index([farmId])
+  @@index([diseaseId])
+}
+
+model HealthCase {
+  id             String           @id @default(uuid()) @db.Uuid
+  caseNumber     String           @unique
+  farmId         String           @db.Uuid
+  animalId       String           @db.Uuid
+  title          String
+  chiefComplaint String?
+  status         HealthCaseStatus @default(OPEN)
+  veterinarianId String           @db.Uuid
+  openedAt       DateTime         @default(now())
+  resolvedAt     DateTime?
+  notes          String?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  farm            Farm                        @relation(fields: [farmId], references: [id], onDelete: Cascade)
+  animal          Animal                      @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  veterinarian    User                        @relation("VetHealthCases", fields: [veterinarianId], references: [id], onDelete: Restrict)
+  examinations    ClinicalExamination[]
+  animalDiseases  AnimalDisease[]
+  treatments      Treatment[]
+  labTests        LabTestRecord[]
+  quarantines     QuarantineRecord[]
+  riskAssessments BiosecurityRiskAssessment[]
+  withdrawals     WithdrawalPeriod[]
+  followUps       FollowUp[]
+
+  @@index([farmId])
+  @@index([animalId])
+  @@index([status])
+  @@index([caseNumber])
+}
+
+model ClinicalExamination {
+  id                 String            @id @default(uuid()) @db.Uuid
+  caseId             String?           @db.Uuid
+  animalId           String            @db.Uuid
+  farmId             String            @db.Uuid
+  veterinarianId     String            @db.Uuid
+  examDate           DateTime          @default(now())
+  temperature        Float?
+  heartRate          Int?
+  respiratoryRate    Int?
+  rumenMotility      Int?
+  mucousMembranes    String?
+  bodyConditionScore Float?
+  clinicalSigns      String[]          @default([])
+  initialAssessment  String?
+  certainty          ClinicalCertainty @default(SUSPECTED)
+  notes              String?
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+
+  case         HealthCase? @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  animal       Animal      @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  farm         Farm        @relation(fields: [farmId], references: [id], onDelete: Cascade)
+  veterinarian User        @relation("ExamVet", fields: [veterinarianId], references: [id], onDelete: Restrict)
+
+  @@index([caseId])
+  @@index([animalId])
+  @@index([farmId])
+  @@index([examDate])
+}
+
+model Treatment {
+  id                 String          @id @default(uuid()) @db.Uuid
+  animalId           String          @db.Uuid
+  healthRecordId     String?         @db.Uuid
+  caseId             String?         @db.Uuid
+  medicationId       String?         @db.Uuid
+  veterinarianId     String          @db.Uuid
+  prescriptionNumber String?
+  treatmentName      String
+  category           String?
+  dose               String?
+  route              String?
+  frequency          String?
+  instructions       String?
+  duration           Int?
+  startDate          DateTime
+  endDate            DateTime?
+  withdrawalMilk     Int             @default(0)
+  withdrawalMeat     Int             @default(0)
+  milkWithheld       Boolean         @default(false)
+  condition          String?
+  description        String?
+  status             TreatmentStatus @default(IN_PROGRESS)
+  notes              String?
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+
+  animal       Animal             @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  healthRecord HealthRecord?      @relation(fields: [healthRecordId], references: [id], onDelete: SetNull)
+  case         HealthCase?        @relation(fields: [caseId], references: [id], onDelete: SetNull)
+  medication   Medication?        @relation(fields: [medicationId], references: [id], onDelete: SetNull)
+  veterinarian User               @relation(fields: [veterinarianId], references: [id], onDelete: Restrict)
+  withdrawals  WithdrawalPeriod[]
+
+  @@index([animalId])
+  @@index([veterinarianId])
+  @@index([caseId])
+  @@index([status])
+}
+
+model WithdrawalPeriod {
+  id          String            @id @default(uuid()) @db.Uuid
+  treatmentId String?           @db.Uuid
+  caseId      String?           @db.Uuid
+  animalId    String            @db.Uuid
+  farmId      String            @db.Uuid
+  productType WithdrawalProduct @default(MILK)
+  startDate   DateTime
+  endDate     DateTime
+  status      WithdrawalStatus  @default(ACTIVE)
+  notes       String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  treatment Treatment?  @relation(fields: [treatmentId], references: [id], onDelete: Cascade)
+  case      HealthCase? @relation(fields: [caseId], references: [id], onDelete: SetNull)
+  animal    Animal      @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  farm      Farm        @relation(fields: [farmId], references: [id], onDelete: Cascade)
+
+  @@index([animalId])
+  @@index([farmId])
+  @@index([status])
+  @@index([endDate])
+}
+
+model BiosecurityRiskAssessment {
+  id                        String               @id @default(uuid()) @db.Uuid
+  caseId                    String?              @db.Uuid
+  animalId                  String               @db.Uuid
+  farmId                    String               @db.Uuid
+  assessedById              String               @db.Uuid
+  riskLevel                 BiosecurityRiskLevel @default(LOW)
+  contagiousnessScore       Int                  @default(1)
+  clinicalSeverity          String?
+  exposureScore             Int                  @default(1)
+  containmentRecommendation String?
+  notes                     String?
+  createdAt                 DateTime             @default(now())
+  updatedAt                 DateTime             @updatedAt
+
+  case              HealthCase?        @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  animal            Animal             @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  farm              Farm               @relation(fields: [farmId], references: [id], onDelete: Cascade)
+  assessedBy        User               @relation("RiskAssessedBy", fields: [assessedById], references: [id], onDelete: Restrict)
+  quarantineRecords QuarantineRecord[]
+
+  @@index([caseId])
+  @@index([animalId])
+  @@index([farmId])
+  @@index([riskLevel])
+}
+
+model ExposureRecord {
+  id                String               @id @default(uuid()) @db.Uuid
+  farmId            String               @db.Uuid
+  sourceAnimalId    String               @db.Uuid
+  contactAnimalId   String               @db.Uuid
+  exposureDate      DateTime             @default(now())
+  exposureType      String
+  location          String?
+  riskLevel         BiosecurityRiskLevel @default(MODERATE)
+  recommendedAction String?
+  actionTaken       String?
+  notes             String?
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+
+  farm          Farm   @relation(fields: [farmId], references: [id], onDelete: Cascade)
+  sourceAnimal  Animal @relation("SourceAnimalExposures", fields: [sourceAnimalId], references: [id], onDelete: Cascade)
+  contactAnimal Animal @relation("ContactAnimalExposures", fields: [contactAnimalId], references: [id], onDelete: Cascade)
+
+  @@index([farmId])
+  @@index([sourceAnimalId])
+  @@index([contactAnimalId])
+  @@index([riskLevel])
+}
+
+model MovementRestriction {
+  id              String                  @id @default(uuid()) @db.Uuid
+  animalId        String                  @db.Uuid
+  farmId          String                  @db.Uuid
+  imposedById     String                  @db.Uuid
+  reason          String
+  restrictionType MovementRestrictionType @default(ALL)
+  startDate       DateTime                @default(now())
+  endDate         DateTime?
+  status          String                  @default("ACTIVE")
+  liftedById      String?                 @db.Uuid
+  liftedReason    String?
+  liftedAt        DateTime?
+  notes           String?
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
+
+  animal    Animal @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  farm      Farm   @relation(fields: [farmId], references: [id], onDelete: Cascade)
+  imposedBy User   @relation("RestrictionImposedBy", fields: [imposedById], references: [id], onDelete: Restrict)
+  liftedBy  User?  @relation("RestrictionLiftedBy", fields: [liftedById], references: [id], onDelete: SetNull)
+
+  @@index([animalId])
+  @@index([farmId])
+  @@index([status])
+}
+
+model Vaccination {
+  id                 String            @id @default(uuid()) @db.Uuid
+  animalId           String            @db.Uuid
+  administeredById   String            @db.Uuid
+  vaccineName        String
+  dose               String
+  vaccinationDate    DateTime
+  actualDate         DateTime?
+  nextDueDate        DateTime?
+  noNextDose         Boolean           @default(false)
+  batchNumber        String?
+  notes              String?
+  status             VaccinationStatus @default(COMPLETED)
+  cancelledAt        DateTime?
+  cancellationReason String?
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+
+  animal         Animal @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  administeredBy User   @relation(fields: [administeredById], references: [id], onDelete: Restrict)
+
+  @@index([animalId])
+  @@index([nextDueDate])
+  @@index([administeredById])
+}
+
+model VeterinaryVisit {
+  id              String   @id @default(uuid()) @db.Uuid
+  animalId        String   @db.Uuid
+  veterinarianId  String   @db.Uuid
+  visitDate       DateTime
+  reason          String
+  findings        String?
+  recommendations String?
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  animal       Animal @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  veterinarian User   @relation(fields: [veterinarianId], references: [id], onDelete: Restrict)
+
+  @@index([animalId])
+  @@index([veterinarianId])
+}
+
+// --- BIOSECURITY, QUARANTINE & HEALTH CLEARANCES ---
+
+model QuarantineZone {
+  id          String   @id @default(uuid()) @db.Uuid
+  farmId      String   @db.Uuid
+  name        String
+  capacity    Int      @default(10)
+  status      String   @default("available")
+  diseaseRisk String?
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  farm              Farm               @relation(fields: [farmId], references: [id], onDelete: Cascade)
+  quarantineRecords QuarantineRecord[]
+
+  @@index([farmId])
+}
+
+model QuarantineRecord {
+  id                    String           @id @default(uuid()) @db.Uuid
+  farmId                String           @db.Uuid
+  animalId              String           @db.Uuid
+  caseId                String?          @db.Uuid
+  zoneId                String?          @db.Uuid
+  riskAssessmentId      String?          @db.Uuid
+  zoneName              String
+  reason                String
+  startDate             DateTime
+  expectedRelease       DateTime
+  actualRelease         DateTime?
+  status                QuarantineStatus @default(ACTIVE)
+  orderedById           String           @db.Uuid
+  releasedById          String?          @db.Uuid
+  releaseCriteriaMet    Boolean          @default(false)
+  releaseReason         String?
+  supportingLabResultId String?
+  govtRef               String?
+  contactAnimals        String[]         @default([])
+  notes                 String?
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+
+  farm           Farm                       @relation(fields: [farmId], references: [id], onDelete: Cascade)
+  animal         Animal                     @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  case           HealthCase?                @relation(fields: [caseId], references: [id], onDelete: SetNull)
+  zone           QuarantineZone?            @relation(fields: [zoneId], references: [id], onDelete: SetNull)
+  riskAssessment BiosecurityRiskAssessment? @relation(fields: [riskAssessmentId], references: [id], onDelete: SetNull)
+  orderedBy      User                       @relation("QuarantineOrderedBy", fields: [orderedById], references: [id], onDelete: Restrict)
+  releasedBy     User?                      @relation("QuarantineReleasedBy", fields: [releasedById], references: [id], onDelete: SetNull)
+
+  @@index([farmId])
+  @@index([animalId])
+  @@index([status])
+  @@index([zoneId])
+  @@index([caseId])
+}
+
+model HealthClearance {
+  id                   String          @id @default(uuid()) @db.Uuid
+  farmId               String          @db.Uuid
+  animalId             String          @db.Uuid
+  permitNo             String          @unique
+  clearanceType        String          @default("TRANSIT")
+  purpose              String
+  destination          String
+  issuedById           String          @db.Uuid
+  issuedDate           DateTime        @default(now())
+  validUntil           DateTime
+  approvedById         String?         @db.Uuid
+  approvedAt           DateTime?
+  status               ClearanceStatus @default(PENDING)
+  prerequisitesChecked Boolean         @default(true)
+  revokedById          String?         @db.Uuid
+  revokedAt            DateTime?
+  revocationReason     String?
+  conditions           String?
+  notes                String?
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+
+  farm          Farm           @relation(fields: [farmId], references: [id], onDelete: Cascade)
+  animal        Animal         @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  issuedBy      User           @relation("ClearanceIssuedBy", fields: [issuedById], references: [id], onDelete: Restrict)
+  approvedBy    User?          @relation("ClearanceApprovedBy", fields: [approvedById], references: [id], onDelete: SetNull)
+  revokedBy     User?          @relation("ClearanceRevokedBy", fields: [revokedById], references: [id], onDelete: SetNull)
+  farmTransfers FarmTransfer[]
+
+  @@index([farmId])
+  @@index([animalId])
+  @@index([permitNo])
+  @@index([status])
+}
+
+model LabResult {
+  id             String          @id @default(uuid()) @db.Uuid
+  farmId         String          @db.Uuid
+  animalId       String          @db.Uuid
+  healthRecordId String?         @db.Uuid
+  testType       String
+  laboratory     String
+  sampleDate     DateTime
+  resultDate     DateTime?
+  status         LabResultStatus @default(PENDING)
+  resultText     String?
+  isFlagged      Boolean         @default(false)
+  requestedById  String          @db.Uuid
+  notes          String?
+  documentUrl    String?
+  documentUrls   String[]        @default([])
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  farm         Farm          @relation(fields: [farmId], references: [id], onDelete: Cascade)
+  animal       Animal        @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  requestedBy  User          @relation("LabRequestedBy", fields: [requestedById], references: [id], onDelete: Restrict)
+  healthRecord HealthRecord? @relation(fields: [healthRecordId], references: [id], onDelete: SetNull)
+
+  @@index([farmId])
+  @@index([animalId])
+  @@index([healthRecordId])
+  @@index([status])
+  @@index([isFlagged])
+}
+
+model LabTestRecord {
+  id                   String       @id @default(uuid()) @db.Uuid
+  caseId               String?      @db.Uuid
+  animalId             String       @db.Uuid
+  farmId               String       @db.Uuid
+  catalogId            String?      @db.Uuid
+  sampleId             String       @unique
+  sampleType           String
+  collectionDate       DateTime     @default(now())
+  collectedById        String       @db.Uuid
+  laboratory           String
+  stage                LabTestStage @default(REQUESTED)
+  resultDate           DateTime?
+  resultValue          String?
+  resultInterpretation String?
+  isAbnormal           Boolean      @default(false)
+  isCritical           Boolean      @default(false)
+  reviewedById         String?      @db.Uuid
+  reviewedAt           DateTime?
+  notes                String?
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+
+  case        HealthCase?     @relation(fields: [caseId], references: [id], onDelete: SetNull)
+  animal      Animal          @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  farm        Farm            @relation(fields: [farmId], references: [id], onDelete: Cascade)
+  catalog     LabTestCatalog? @relation(fields: [catalogId], references: [id], onDelete: SetNull)
+  collectedBy User            @relation("LabSampleCollectedBy", fields: [collectedById], references: [id], onDelete: Restrict)
+  reviewedBy  User?           @relation("LabReviewedBy", fields: [reviewedById], references: [id], onDelete: SetNull)
+
+  @@index([caseId])
+  @@index([animalId])
+  @@index([farmId])
+  @@index([stage])
+  @@index([isCritical])
+}
+
+model HealthAlert {
+  id           String        @id @default(uuid()) @db.Uuid
+  farmId       String        @db.Uuid
+  animalId     String?       @db.Uuid
+  type         String
+  severity     AlertSeverity @default(MEDIUM)
+  title        String
+  message      String
+  isRead       Boolean       @default(false)
+  isResolved   Boolean       @default(false)
+  resolvedById String?       @db.Uuid
+  resolvedAt   DateTime?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  farm       Farm    @relation(fields: [farmId], references: [id], onDelete: Cascade)
+  animal     Animal? @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  resolvedBy User?   @relation("AlertResolvedBy", fields: [resolvedById], references: [id], onDelete: SetNull)
+
+  @@index([farmId])
+  @@index([animalId])
+  @@index([isResolved])
+  @@index([severity])
+}
+
+model FollowUp {
+  id            String         @id @default(uuid()) @db.Uuid
+  caseId        String?        @db.Uuid
+  animalId      String         @db.Uuid
+  farmId        String         @db.Uuid
+  assignedVetId String         @db.Uuid
+  scheduledDate DateTime
+  reason        String
+  status        FollowUpStatus @default(PENDING)
+  outcome       String?
+  completedAt   DateTime?
+  notes         String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  case        HealthCase? @relation(fields: [caseId], references: [id], onDelete: SetNull)
+  animal      Animal      @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  farm        Farm        @relation(fields: [farmId], references: [id], onDelete: Cascade)
+  assignedVet User        @relation("AssignedVetFollowUps", fields: [assignedVetId], references: [id], onDelete: Restrict)
+
+  @@index([farmId])
+  @@index([animalId])
+  @@index([scheduledDate])
+  @@index([status])
+}
+
+// --- FEEDING ---
+
+model FeedType {
+  id          String    @id @default(uuid()) @db.Uuid
+  name        String    @unique
+  description String?
+  unit        String
+  deletedAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  feedingRecords FeedingRecord[]
+}
+
+model FeedingRecord {
+  id           String   @id @default(uuid()) @db.Uuid
+  animalId     String   @db.Uuid
+  feedTypeId   String   @db.Uuid
+  recordedById String   @db.Uuid
+  fedAt        DateTime @default(now())
+  quantity     Float
+  unit         String
+  notes        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  animal     Animal   @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  feedType   FeedType @relation(fields: [feedTypeId], references: [id], onDelete: Restrict)
+  recordedBy User     @relation(fields: [recordedById], references: [id], onDelete: Restrict)
+
+  @@index([animalId])
+  @@index([feedTypeId])
+  @@index([fedAt])
+}
+
+// --- MILK PRODUCTION ---
+
+model MilkProduction {
+  id                String         @id @default(uuid()) @db.Uuid
+  animalId          String         @db.Uuid
+  farmId            String         @db.Uuid
+  recordedById      String         @db.Uuid
+  productionDate    DateTime
+  milkingSession    MilkingSession
+  quantityLiters    Float
+  milkQuality       String?
+  fatPercentage     Float?
+  proteinPercentage Float?
+  notes             String?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  animal     Animal @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  farm       Farm   @relation(fields: [farmId], references: [id], onDelete: Restrict)
+  recordedBy User   @relation(fields: [recordedById], references: [id], onDelete: Restrict)
+
+  // Prevent duplicate milking records for the same animal, date, and session
+  @@unique([animalId, productionDate, milkingSession])
+  @@index([animalId])
+  @@index([productionDate])
+  @@index([farmId])
+}
+
+// --- BREEDING ---
+
+model BreedingRecord {
+  id             String         @id @default(uuid()) @db.Uuid
+  femaleAnimalId String         @db.Uuid
+  maleAnimalId   String?        @db.Uuid
+  breedingDate   DateTime
+  breedingMethod BreedingMethod @default(ARTIFICIAL_INSEMINATION)
+  technicianId   String         @db.Uuid
+  status         BreedingStatus @default(COMPLETED)
+  notes          String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  femaleAnimal Animal      @relation("FemaleAnimal", fields: [femaleAnimalId], references: [id], onDelete: Cascade)
+  maleAnimal   Animal?     @relation("MaleAnimal", fields: [maleAnimalId], references: [id], onDelete: SetNull)
+  technician   User        @relation(fields: [technicianId], references: [id], onDelete: Restrict)
+  pregnancies  Pregnancy[]
+
+  @@index([femaleAnimalId])
+  @@index([maleAnimalId])
+  @@index([technicianId])
+}
+
+model Pregnancy {
+  id                  String          @id @default(uuid()) @db.Uuid
+  animalId            String          @db.Uuid
+  breedingRecordId    String          @db.Uuid
+  pregnancyDate       DateTime
+  expectedCalvingDate DateTime
+  actualCalvingDate   DateTime?
+  status              PregnancyStatus @default(CONFIRMED)
+  notes               String?
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+
+  animal         Animal          @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  breedingRecord BreedingRecord  @relation(fields: [breedingRecordId], references: [id], onDelete: Restrict)
+  calvingRecords CalvingRecord[]
+
+  @@index([animalId])
+  @@index([breedingRecordId])
+}
+
+model CalvingRecord {
+  id            String   @id @default(uuid()) @db.Uuid
+  motherId      String   @db.Uuid
+  pregnancyId   String?  @db.Uuid
+  calvingDate   DateTime
+  calfCount     Int      @default(1)
+  calvingType   String
+  complications String?
+  notes         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  mother    Animal     @relation(fields: [motherId], references: [id], onDelete: Cascade)
+  pregnancy Pregnancy? @relation(fields: [pregnancyId], references: [id], onDelete: SetNull)
+
+  @@index([motherId])
+  @@index([pregnancyId])
+}
+
+// --- MOVEMENT & TRACEABILITY ---
+
+model AnimalMovement {
+  id              String       @id @default(uuid()) @db.Uuid
+  animalId        String       @db.Uuid
+  fromFarmId      String?      @db.Uuid
+  toFarmId        String?      @db.Uuid
+  movementType    MovementType
+  movementDate    DateTime
+  reason          String?
+  transportMethod String?
+  recordedById    String       @db.Uuid
+  notes           String?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  animal     Animal @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  fromFarm   Farm?  @relation("FromFarm", fields: [fromFarmId], references: [id], onDelete: SetNull)
+  toFarm     Farm?  @relation("ToFarm", fields: [toFarmId], references: [id], onDelete: SetNull)
+  recordedBy User   @relation(fields: [recordedById], references: [id], onDelete: Restrict)
+
+  @@index([animalId])
+  @@index([movementDate])
+  @@index([fromFarmId])
+  @@index([toFarmId])
+}
+
+model OwnershipTransfer {
+  id              String         @id @default(uuid()) @db.Uuid
+  animalId        String         @db.Uuid
+  previousOwnerId String         @db.Uuid
+  newOwnerId      String         @db.Uuid
+  transferDate    DateTime
+  reason          String?
+  documentId      String?        @db.Uuid
+  status          TransferStatus @default(COMPLETED)
+  notes           String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  animal        Animal    @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  previousOwner User      @relation("PreviousOwner", fields: [previousOwnerId], references: [id], onDelete: Restrict)
+  newOwner      User      @relation("NewOwner", fields: [newOwnerId], references: [id], onDelete: Restrict)
+  document      Document? @relation(fields: [documentId], references: [id], onDelete: SetNull)
+
+  @@index([animalId])
+  @@index([previousOwnerId])
+  @@index([newOwnerId])
+}
+
+// --- TRACEABILITY: DAILY ACTIVITY LOG ---
+
+model DailyActivityLog {
+  id           String            @id @default(uuid()) @db.Uuid
+  animalId     String            @db.Uuid
+  farmId       String            @db.Uuid
+  recordedById String            @db.Uuid
+  activityType DailyActivityType
+  activityDate DateTime          @db.Date
+  activityTime String // HH:mm stored as text
+  session      ActivitySession
+  status       ActivityStatus    @default(COMPLETED)
+  notes        String?
+
+  // Feeding fields
+  feedType      String?
+  feedName      String?
+  quantity      Float?
+  unit          String?
+  feedingMethod String?
+
+  // Weight check field
+  weightKg Float?
+
+  // Health check fields
+  observation  String?
+  temperature  Float?
+  healthStatus String?
+  symptoms     String?
+  requiresVet  Boolean @default(false)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  animal     Animal @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  farm       Farm   @relation(fields: [farmId], references: [id], onDelete: Cascade)
+  recordedBy User   @relation(fields: [recordedById], references: [id], onDelete: Restrict)
+
+  @@index([animalId])
+  @@index([farmId])
+  @@index([activityDate])
+  @@index([activityType])
+  @@index([session])
+  @@index([status])
+  @@index([recordedById])
+  @@index([deletedAt])
+}
+
+// --- TRACEABILITY: FARM TRANSFER (FULL LIFECYCLE) ---
+
+model FarmTransfer {
+  id                  String             @id @default(uuid()) @db.Uuid
+  animalId            String             @db.Uuid
+  fromFarmId          String             @db.Uuid
+  toFarmId            String             @db.Uuid
+  recordedById        String             @db.Uuid
+  departureDate       DateTime           @db.Date
+  departureTime       String // HH:mm
+  expectedArrivalDate DateTime           @db.Date
+  expectedArrivalTime String // HH:mm
+  actualArrivalDate   DateTime?          @db.Date
+  actualArrivalTime   String?
+  reason              FarmTransferReason
+  status              FarmTransferStatus @default(SCHEDULED)
+  vehicleNumber       String?
+  driverName          String?
+  driverContact       String?
+  notes               String?
+  cancelReason        String?
+  healthClearanceId   String?            @db.Uuid
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+  deletedAt           DateTime?
+
+  animal          Animal           @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  fromFarm        Farm             @relation("FarmTransferFrom", fields: [fromFarmId], references: [id], onDelete: Restrict)
+  toFarm          Farm             @relation("FarmTransferTo", fields: [toFarmId], references: [id], onDelete: Restrict)
+  recordedBy      User             @relation(fields: [recordedById], references: [id], onDelete: Restrict)
+  healthClearance HealthClearance? @relation(fields: [healthClearanceId], references: [id], onDelete: SetNull)
+
+  @@index([animalId])
+  @@index([fromFarmId])
+  @@index([toFarmId])
+  @@index([departureDate])
+  @@index([status])
+  @@index([reason])
+  @@index([recordedById])
+  @@index([deletedAt])
+}
+
+// --- DOCUMENT MANAGEMENT ---
+
+model DocumentType {
+  id          String    @id @default(uuid()) @db.Uuid
+  name        String    @unique
+  description String?
+  deletedAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  documents Document[]
+}
+
+model Document {
+  id             String         @id @default(uuid()) @db.Uuid
+  animalId       String?        @db.Uuid
+  farmId         String?        @db.Uuid
+  uploadedById   String         @db.Uuid
+  documentTypeId String         @db.Uuid
+  fileName       String
+  fileUrl        String
+  storagePath    String
+  fileSize       Int
+  mimeType       String
+  status         DocumentStatus @default(ACTIVE)
+  issueDate      DateTime?
+  expiryDate     DateTime?
+  deletedAt      DateTime?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  animal             Animal?             @relation(fields: [animalId], references: [id], onDelete: SetNull)
+  farm               Farm?               @relation(fields: [farmId], references: [id], onDelete: SetNull)
+  uploadedBy         User                @relation(fields: [uploadedById], references: [id], onDelete: Restrict)
+  documentType       DocumentType        @relation(fields: [documentTypeId], references: [id], onDelete: Restrict)
+  ownershipTransfers OwnershipTransfer[]
+
+  @@index([animalId])
+  @@index([farmId])
+  @@index([expiryDate])
+  @@index([uploadedById])
+  @@index([deletedAt])
+}
+
+// --- USER SESSIONS & REFRESH TOKEN ROTATION ---
+
+model UserSession {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  tokenHash String   @unique
+  userAgent String?
+  ipAddress String?
+  isRevoked Boolean  @default(false)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([tokenHash])
+}
+
+// --- NOTIFICATIONS ---
+
+model Notification {
+  id               String               @id @default(uuid()) @db.Uuid
+  userId           String               @db.Uuid
+  title            String
+  message          String
+  notificationType NotificationType
+  category         String?
+  priority         NotificationPriority @default(NORMAL)
+  referenceType    String?
+  referenceId      String?
+  actionUrl        String?
+  farmId           String?              @db.Uuid
+  dedupKey         String?
+  isRead           Boolean              @default(false)
+  readAt           DateTime?
+  createdAt        DateTime             @default(now())
+
+  user User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  farm Farm? @relation(fields: [farmId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([isRead])
+  @@index([createdAt])
+  @@index([farmId])
+  @@index([dedupKey])
+}
+
+model NotificationPreference {
+  id                       String   @id @default(uuid()) @db.Uuid
+  userId                   String   @unique @db.Uuid
+  vaccinationNotifications Boolean  @default(true)
+  feedingNotifications     Boolean  @default(true)
+  healthNotifications      Boolean  @default(true)
+  documentNotifications    Boolean  @default(true)
+  syncNotifications        Boolean  @default(true)
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// --- OFFLINE SYNCHRONIZATION ---
+
+model SyncBatch {
+  id                String     @id @default(uuid()) @db.Uuid
+  userId            String     @db.Uuid
+  deviceId          String
+  idempotencyKey    String?    @unique
+  clientCreatedAt   DateTime?
+  serverProcessedAt DateTime?
+  completedAt       DateTime?
+  totalRecords      Int        @default(0)
+  successfulRecords Int        @default(0)
+  failedRecords     Int        @default(0)
+  status            SyncStatus @default(PENDING)
+  createdAt         DateTime   @default(now())
+
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  syncRecords SyncRecord[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([idempotencyKey])
+}
+
+model SyncRecord {
+  id                String        @id @default(uuid()) @db.Uuid
+  syncBatchId       String        @db.Uuid
+  entityType        String
+  entityId          String?
+  operation         SyncOperation
+  payload           Json
+  clientVersion     Int           @default(1)
+  serverVersion     Int           @default(1)
+  status            SyncStatus    @default(PENDING)
+  errorMessage      String?
+  clientCreatedAt   DateTime?
+  clientUpdatedAt   DateTime?
+  serverProcessedAt DateTime?
+  createdAt         DateTime      @default(now())
+  syncedAt          DateTime?
+
+  syncBatch SyncBatch @relation(fields: [syncBatchId], references: [id], onDelete: Cascade)
+
+  @@index([syncBatchId])
+  @@index([entityType])
+}
+
+// --- AUDIT LOGGING ---
+
+model AuditLog {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String?  @db.Uuid
+  action     String
+  entityType String
+  entityId   String?
+  oldValues  Json?
+  newValues  Json?
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([entityType])
+  @@index([entityId])
+  @@index([createdAt])
+}
+
+// --- SYSTEM SETTINGS ---
+
+model SystemSetting {
+  id          String   @id @default(uuid()) @db.Uuid
+  key         String   @unique
+  value       Json
+  description String?
+  updatedById String?  @db.Uuid
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  updatedBy User? @relation(fields: [updatedById], references: [id], onDelete: SetNull)
+}
+
+// --- TASK MANAGEMENT ---
+
+model Task {
+  id            String       @id @default(uuid()) @db.Uuid
+  farmId        String       @db.Uuid
+  assignedToId  String       @db.Uuid
+  createdById   String       @db.Uuid
+  completedById String?      @db.Uuid
+  animalId      String?      @db.Uuid
+  title         String
+  description   String?
+  priority      TaskPriority @default(NORMAL)
+  status        TaskStatus   @default(PENDING)
+  category      TaskCategory @default(GENERAL)
+  startDate     DateTime?
+  dueDate       DateTime
+  completedAt   DateTime?
+  notes         String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  deletedAt     DateTime?
+
+  farm        Farm    @relation(fields: [farmId], references: [id], onDelete: Cascade)
+  assignedTo  User    @relation("TasksAssignedTo", fields: [assignedToId], references: [id], onDelete: Restrict)
+  createdBy   User    @relation("TasksCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  completedBy User?   @relation("TasksCompletedBy", fields: [completedById], references: [id], onDelete: SetNull)
+  animal      Animal? @relation(fields: [animalId], references: [id], onDelete: SetNull)
+
+  @@index([farmId])
+  @@index([assignedToId])
+  @@index([status])
+  @@index([dueDate])
+}

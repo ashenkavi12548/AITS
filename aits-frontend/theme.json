@@ -1,0 +1,131 @@
+{
+  "project": {
+    "name": "Animal Identification & Traceability System",
+    "shortName": "AITS",
+    "company": "Ceylon Nest",
+    "designDirection": "ChatGPT Minimalist Onyx & Obsidian Slate"
+  },
+  "theme": {
+    "name": "ChatGPT Onyx + OpenAI Slate",
+    "style": [
+      "ChatGPT Minimalist",
+      "Sleek Onyx Dark Mode",
+      "High-Contrast Clean Light Mode",
+      "OpenAI Emerald Accents",
+      "Enterprise Traceability"
+    ],
+    "colors": {
+      "primary": {
+        "name": "OpenAI Emerald",
+        "hex": "#10A37F",
+        "hover": "#0E8C6D",
+        "light": "rgba(16, 163, 127, 0.12)"
+      },
+      "secondary": {
+        "name": "ChatGPT Sky",
+        "hex": "#0EA5E9",
+        "hover": "#0284C7",
+        "light": "rgba(14, 165, 233, 0.12)"
+      },
+      "accent": {
+        "name": "Warm Amber",
+        "hex": "#F59E0B",
+        "light": "rgba(245, 158, 11, 0.12)"
+      },
+      "backgroundLight": {
+        "name": "Pure Canvas White",
+        "hex": "#FFFFFF"
+      },
+      "backgroundDark": {
+        "name": "ChatGPT Onyx Charcoal",
+        "hex": "#212121"
+      },
+      "sidebarLight": {
+        "name": "Soft Warm Gray",
+        "hex": "#F9F9F9"
+      },
+      "sidebarDark": {
+        "name": "ChatGPT Deep Sidebar",
+        "hex": "#171717"
+      },
+      "surfaceLight": {
+        "name": "Elevated Pure White",
+        "hex": "#FFFFFF"
+      },
+      "surfaceDark": {
+        "name": "ChatGPT Charcoal Surface",
+        "hex": "#2F2F2F"
+      },
+      "surfaceSecondaryDark": {
+        "name": "ChatGPT Base Slate",
+        "hex": "#212121"
+      },
+      "borderLight": {
+        "name": "Subtle Light Border",
+        "hex": "#E5E5E5"
+      },
+      "borderDark": {
+        "name": "Crisp Dark Divider",
+        "hex": "#303030"
+      },
+      "textLight": {
+        "primary": "#0D0D0D",
+        "secondary": "#5D5D5D",
+        "muted": "#8E8E8E"
+      },
+      "textDark": {
+        "primary": "#ECECEC",
+        "secondary": "#B4B4B4",
+        "muted": "#737373"
+      },
+      "success": {
+        "hex": "#10A37F"
+      },
+      "warning": {
+        "hex": "#F59E0B"
+      },
+      "danger": {
+        "hex": "#EF4444"
+      },
+      "info": {
+        "hex": "#0EA5E9"
+      }
+    }
+  },
+  "branding": {
+    "concept": "Traceability Shield + Cryptographic Pass + Bio Leaf Halo",
+    "visualMeaning": {
+      "animal": "Livestock census & pedigree identification",
+      "qr": "Real-time cryptotraceability & digital pass",
+      "leaf": "Sustainable modern agriculture & biosecurity"
+    }
+  },
+  "typography": {
+    "web": {
+      "fontFamily": "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+      "scale": {
+        "root": "16px",
+        "body": "15px",
+        "bodyLeading": "1.6",
+        "heading1": "24px",
+        "heading2": "20px",
+        "heading3": "16px",
+        "small": "13px",
+        "micro": "11px"
+      },
+      "weights": [400, 500, 600, 700]
+    }
+  },
+  "ui": {
+    "borderRadius": {
+      "card": "16px",
+      "button": "12px",
+      "pill": "9999px",
+      "input": "12px",
+      "modal": "20px"
+    },
+    "shadows": {
+      "style": "crisp 1px borders with subtle micro-elevation"
+    }
+  }
+}
