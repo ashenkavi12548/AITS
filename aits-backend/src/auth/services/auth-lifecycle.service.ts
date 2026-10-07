@@ -84,13 +84,6 @@ export class AuthLifecycleService {
       });
     }
 
-    // 4. Generate 6-digit OTP and store SHA-256 hash
-    const verificationOtp = Math.floor(
-      100000 + Math.random() * 900000,
-    ).toString();
-    const otpHash = createHash('sha256').update(verificationOtp).digest('hex');
-    const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
-
     // 5. Create user, role link, farm, and preferences in a single transaction
     const createdUser = await this.prisma.$transaction(async (tx) => {
       const newUser = await tx.user.create({

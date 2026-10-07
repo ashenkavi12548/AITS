@@ -3,7 +3,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { AxiosError } from 'axios';
-import { AuthUser, LoginCredentials, RegisterInput, VerifyOtpInput } from '@/types/auth';
+import { AuthUser, LoginCredentials, RegisterInput } from '@/types/auth';
 import { authService } from '@/services/auth.service';
 import { api } from '@/services/api';
 
@@ -40,7 +40,7 @@ interface AuthState {
   initAuth: () => Promise<void>;
   login: (credentials: LoginCredentials) => Promise<boolean>;
   register: (data: RegisterInput) => Promise<boolean>;
-  verifyOtp: (data: VerifyOtpInput) => Promise<boolean>;
+
   logout: () => Promise<void>;
   updateUser: (updatedData: Partial<AuthUser>) => void;
   updateProfilePicture: (url: string | null) => void;
@@ -241,41 +241,7 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      verifyOtp: async (data: VerifyOtpInput) => {
-        set({ isLoading: true, error: null });
-        try {
-          const response = await authService.verifyOtp(data);
 
-          if (typeof window !== 'undefined') {
-            if (response.accessToken) {
-              localStorage.setItem('aits_access_token', response.accessToken);
-              api.defaults.headers.common.Authorization = `Bearer ${response.accessToken}`;
-            }
-            if (response.refreshToken) {
-              localStorage.setItem('aits_refresh_token', response.refreshToken);
-            }
-          }
-
-          set({
-            user: response.user,
-            isAuthenticated: true,
-            isInitialized: true,
-            isLoading: false,
-            error: null,
-          });
-          return true;
-        } catch (err: unknown) {
-          const message = getErrorMessage(
-            err,
-            'Verification failed. Please check your 6-digit code.',
-          );
-          set({
-            isLoading: false,
-            error: message,
-          });
-          return false;
-        }
-      },
 
       logout: async () => {
         set({ isLoading: true });

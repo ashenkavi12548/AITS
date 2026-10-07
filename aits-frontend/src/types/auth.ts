@@ -65,10 +65,7 @@ export interface RegisterInput {
   city?: string;
 }
 
-export interface VerifyOtpInput {
-  email: string;
-  otp: string;
-}
+
 
 export interface ChangePasswordInput {
   currentPassword: string;

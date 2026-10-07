@@ -19,35 +19,7 @@ export const authService = {
     return response.data;
   },
 
-  verifyOtp: async (
-    data: { email: string; otp: string },
-  ): Promise<AuthResponse & { message: string }> => {
-    const response = await api.post<AuthResponse & { message: string }>(
-      '/api/v1/auth/verify-otp',
-      data,
-    );
-    return response.data;
-  },
 
-  verifyEmail: async (
-    token: string,
-  ): Promise<{ success: boolean; message: string }> => {
-    const response = await api.post<{ success: boolean; message: string }>(
-      '/api/v1/auth/verify-email',
-      { token },
-    );
-    return response.data;
-  },
-
-  resendVerification: async (
-    email: string,
-  ): Promise<{ success: boolean; message: string }> => {
-    const response = await api.post<{ success: boolean; message: string }>(
-      '/api/v1/auth/resend-verification',
-      { email },
-    );
-    return response.data;
-  },
 
   refreshToken: async (refreshToken?: string): Promise<AuthResponse> => {
     const token =

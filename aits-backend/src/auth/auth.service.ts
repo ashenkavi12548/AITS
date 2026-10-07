@@ -4,7 +4,6 @@ import {
   RegisterDto,
   ChangePasswordDto,
   UpdateProfileDto,
-  VerifyOtpDto,
 } from './dto';
 import {
   UploadedMulterFile,
@@ -134,28 +133,5 @@ export class AuthService implements OnModuleInit {
     return this.profile.removeProfilePicture(userId);
   }
 
-  // ===========================================================================
-  // 4. VERIFICATION & OTP
-  // ===========================================================================
 
-  verifyOtp(
-    dto: VerifyOtpDto,
-    meta?: RequestClientMeta,
-  ): Promise<AuthResponse> {
-    return this.verification.verifyOtp(dto, meta);
-  }
-
-  verifyEmail(
-    token: string,
-    meta?: RequestClientMeta,
-  ): Promise<{ success: boolean; message: string }> {
-    return this.verification.verifyEmail(token, meta);
-  }
-
-  resendVerification(
-    email: string,
-    meta?: RequestClientMeta,
-  ): Promise<{ success: boolean; message: string }> {
-    return this.verification.resendVerification(email, meta);
-  }
 }

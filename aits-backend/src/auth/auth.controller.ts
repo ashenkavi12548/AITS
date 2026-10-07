@@ -25,9 +25,6 @@ import {
   RefreshTokenDto,
   ChangePasswordDto,
   UpdateProfileDto,
-  VerifyEmailDto,
-  VerifyOtpDto,
-  ResendVerificationDto,
 } from './dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { Public } from './decorators/public.decorator';
@@ -99,46 +96,7 @@ export class AuthController {
     return result;
   }
 
-  @Public()
-  @Post('verify-otp')
-  @HttpCode(HttpStatus.OK)
-  async verifyOtp(
-    @Body() dto: VerifyOtpDto,
-    @Res({ passthrough: true }) res: Response,
-    @Req() req: Request,
-  ) {
-    const meta = getClientMeta(req);
-    const result = await this.authService.verifyOtp(dto, meta);
-    setAuthCookies(res, result.accessToken, result.refreshToken);
-    return result;
-  }
 
-  @Public()
-  @Post('verify-email')
-  @HttpCode(HttpStatus.OK)
-  async verifyEmail(@Body() dto: VerifyEmailDto, @Req() req: Request) {
-    const meta = getClientMeta(req);
-    return this.authService.verifyEmail(dto.token, meta);
-  }
-
-  @Public()
-  @Get('verify-email')
-  @HttpCode(HttpStatus.OK)
-  async verifyEmailGet(@Query('token') token: string, @Req() req: Request) {
-    const meta = getClientMeta(req);
-    return this.authService.verifyEmail(token, meta);
-  }
-
-  @Public()
-  @Post('resend-verification')
-  @HttpCode(HttpStatus.OK)
-  async resendVerification(
-    @Body() dto: ResendVerificationDto,
-    @Req() req: Request,
-  ) {
-    const meta = getClientMeta(req);
-    return this.authService.resendVerification(dto.email, meta);
-  }
 
   @Public()
   @Post('login')
