@@ -135,7 +135,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
             status = HttpStatus.BAD_REQUEST;
             errorName = 'Bad Request';
             code = 'DATABASE_QUERY_ERROR';
-            message = `Invalid database operation requested. DEBUG: ${exception.message}`;
+            message = `Invalid database operation requested.`;
           }
         }
       }
