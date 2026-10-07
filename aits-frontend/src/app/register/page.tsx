@@ -132,7 +132,6 @@ export default function RegisterPage() {
     });
 
     if (success) {
-      setRegisteredEmail(data.email);
       router.push('/dashboard');
     }
   };
