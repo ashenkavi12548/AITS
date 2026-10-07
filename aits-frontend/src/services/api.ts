@@ -186,8 +186,7 @@ api.interceptors.response.use(
         const isPublicPage =
           window.location.pathname === "/" ||
           window.location.pathname === "/login" ||
-          window.location.pathname === "/register" ||
-          window.location.pathname === "/verify-email";
+          window.location.pathname === "/register";
 
         // Clear stored tokens on definitive authentication failure
         if (originalRequest._retry || url.includes("/auth/refresh")) {
@@ -271,12 +270,10 @@ api.interceptors.response.use(
         localStorage.removeItem("aits_refresh_token");
         localStorage.removeItem("aits_auth_storage");
         useAuthStore.getState().handleUnauthorized();
-
         const isPublicPage =
           window.location.pathname === "/" ||
           window.location.pathname === "/login" ||
-          window.location.pathname === "/register" ||
-          window.location.pathname === "/verify-email";
+          window.location.pathname === "/register";
 
         if (!isPublicPage) {
           const currentPath = window.location.pathname + window.location.search;

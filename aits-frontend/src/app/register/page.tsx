@@ -579,7 +579,7 @@ export default function RegisterPage() {
                       </>
                     ) : (
                       <>
-                        <span>Submit & Verify Email</span>
+                        <span>Submit Registration</span>
                         <ArrowRight className="w-4 h-4" />
                       </>
                     )}
