@@ -30,48 +30,33 @@ export class MailSenderService {
   private initTransporter() {
     if (this.host && this.host.trim() !== '') {
       try {
-        const isGmail =
-          this.host.toLowerCase().includes('gmail') ||
-          this.user.toLowerCase().includes('gmail');
-
         const sanitizedPass = this.pass ? this.pass.replace(/\s+/g, '') : '';
 
-        if (isGmail) {
-          this.transporter = nodemailer.createTransport({
-            host: 'smtp.gmail.com',
-            port: 465,
-            secure: true,
-            auth: {
-              user: this.user,
-              pass: sanitizedPass || this.pass,
-            },
-            tls: {
-              rejectUnauthorized: false,
-            },
-          });
-          this.logger.log(
-            `Nodemailer Gmail transporter initialized for: ${this.user}`,
-          );
-        } else {
-          this.transporter = nodemailer.createTransport({
-            host: this.host,
-            port: this.port,
-            secure: this.secure,
-            auth:
-              this.user && this.pass
-                ? {
-                    user: this.user,
-                    pass: sanitizedPass || this.pass,
-                  }
-                : undefined,
-            tls: {
-              rejectUnauthorized: false,
-            },
-          });
-          this.logger.log(
-            `Nodemailer transporter initialized for host: ${this.host}:${this.port}`,
-          );
-        }
+        // Respect explicitly configured port and secure settings. 
+        // For Gmail: port 465 uses secure: true, port 587 uses secure: false (STARTTLS)
+        this.transporter = nodemailer.createTransport({
+          host: this.host,
+          port: this.port,
+          secure: this.secure,
+          auth:
+            this.user && this.pass
+              ? {
+                  user: this.user,
+                  pass: sanitizedPass || this.pass,
+                }
+              : undefined,
+          tls: {
+            rejectUnauthorized: false,
+          },
+          // Short timeout to prevent hanging the backend (10 seconds)
+          connectionTimeout: 10000,
+          greetingTimeout: 10000,
+          socketTimeout: 10000,
+        });
+
+        this.logger.log(
+          `Nodemailer transporter initialized for host: ${this.host}:${this.port}`,
+        );
       } catch (err: unknown) {
         const errorMsg = err instanceof Error ? err.message : String(err);
         this.logger.warn(
@@ -80,9 +65,13 @@ export class MailSenderService {
         this.transporter = null;
       }
     } else {
-      this.logger.log(
-        'SMTP_HOST is empty. Running in development/mock mail mode (verification links will be logged to console).',
-      );
+      if (process.env.NODE_ENV === 'production') {
+        this.logger.warn('SMTP_HOST is empty in production. Email dispatch is disabled.');
+      } else {
+        this.logger.log(
+          'SMTP_HOST is empty. Running in development/mock mail mode (verification links will be logged to console).',
+        );
+      }
       this.transporter = null;
     }
   }
@@ -530,6 +519,12 @@ export class MailSenderService {
   }
 
   private logFallbackVerification(to: string, otp: string, url: string) {
+    if (process.env.NODE_ENV === 'production') {
+      this.logger.warn(
+        `[DEV / MOCK EMAIL DISPATCH] Mock dispatch bypassed in production for ${to}. Email was NOT sent.`,
+      );
+      return;
+    }
     this.logger.warn(
       `\n=======================================================\n` +
         `[DEV / MOCK EMAIL DISPATCH]\n` +

@@ -5,6 +5,8 @@ import {
   ConflictException,
   ForbiddenException,
   BadRequestException,
+  HttpException,
+  HttpStatus,
 } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { MailService } from '../../mail/mail.service';
@@ -42,6 +44,11 @@ export class AuthLifecycleService {
     });
 
     if (existing) {
+      if (!existing.isEmailVerified) {
+        throw new ConflictException(
+          'Account exists but is not verified. Please use the resend verification option to get a new OTP.',
+        );
+      }
       throw new ConflictException(
         'An account with this email address already exists. Please sign in instead.',
       );
@@ -180,6 +187,13 @@ export class AuthLifecycleService {
       ipAddress: meta?.ipAddress,
       userAgent: meta?.userAgent,
     });
+
+    if (!emailSent) {
+      throw new HttpException(
+        'Account created successfully, but we could not send the verification email. Please try logging in or requesting a new verification code.',
+        HttpStatus.SERVICE_UNAVAILABLE,
+      );
+    }
 
     // 7. Query full user graph with relations
     const fullUser = await this.prisma.user.findUniqueOrThrow({
