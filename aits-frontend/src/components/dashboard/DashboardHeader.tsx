@@ -64,7 +64,7 @@ export default function DashboardHeader({
   }, [activeUser]);
 
   const handleDownloadCsv = () => {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001";
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://unique-education-production-a86b.up.railway.app";
     window.open(`${apiUrl}/api/dashboard/export`, "_blank");
     setIsExportModalOpen(false);
   };

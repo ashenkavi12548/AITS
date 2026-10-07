@@ -34,7 +34,7 @@ toast.error = ((
   return originalToastError(message, options);
 }) as typeof toast.error;
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://unique-education-production-a86b.up.railway.app";
 
 export const api = axios.create({
   baseURL: API_BASE_URL,

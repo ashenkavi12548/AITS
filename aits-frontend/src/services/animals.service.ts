@@ -186,7 +186,7 @@ export const animalsService = {
    * Get export URL for downloading filtered herd CSV
    */
   getExportUrl: (params?: AnimalQueryParams): string => {
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://unique-education-production-a86b.up.railway.app';
     const query = new URLSearchParams();
     if (params?.search) query.append('search', params.search);
     if (params?.breed) query.append('breed', params.breed);

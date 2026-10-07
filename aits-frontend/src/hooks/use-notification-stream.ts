@@ -7,7 +7,7 @@ import { useAuthStore } from "@/stores/useAuthStore";
 import { AppNotification, PaginatedNotifications } from "@/types/notification";
 
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001";
+  process.env.NEXT_PUBLIC_API_URL || "https://unique-education-production-a86b.up.railway.app";
 
 export function useNotificationStream() {
   const queryClient = useQueryClient();
