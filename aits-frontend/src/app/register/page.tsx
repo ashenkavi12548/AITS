@@ -41,10 +41,7 @@ export default function RegisterPage() {
     clearError,
   } = useAuthStore();
 
-  const [step, setStep] = useState<1 | 2 | 3>(1);
-  const [registeredEmail, setRegisteredEmail] = useState<string | null>(null);
-  const [resendStatus, setResendStatus] = useState<string | null>(null);
-  const [resendLoading, setResendLoading] = useState(false);
+  const [step, setStep] = useState<1 | 2>(1);
 
   const {
     register: formRegister,
@@ -179,7 +176,7 @@ export default function RegisterPage() {
       {/* Main Container */}
       <main className="flex-1 flex items-center justify-center p-4 sm:p-6 lg:p-8 relative z-10">
         <div className="w-full max-w-xl">
-          {/* Progress Indicator (3 Steps) */}
+          {/* Progress Indicator (2 Steps) */}
           <div className="mb-4 bg-black/40 backdrop-blur-md p-3.5 rounded-2xl border border-white/10">
             <div className="flex items-center justify-between text-xs font-semibold text-white/80 mb-2 px-1">
               <span className={step >= 1 ? "text-[#10a37f] font-bold" : ""}>
@@ -188,14 +185,11 @@ export default function RegisterPage() {
               <span className={step >= 2 ? "text-[#10a37f] font-bold" : ""}>
                 2. Facility Setup
               </span>
-              <span className={step >= 3 ? "text-[#10a37f] font-bold" : ""}>
-                3. Email OTP
-              </span>
             </div>
             <div className="h-1.5 w-full bg-white/20 rounded-full overflow-hidden flex">
               <div
                 className="h-full bg-[#10a37f] transition-all duration-300 rounded-full"
-                style={{ width: `${(step / 3) * 100}%` }}
+                style={{ width: `${(step / 2) * 100}%` }}
               />
             </div>
           </div>
@@ -206,8 +200,8 @@ export default function RegisterPage() {
             <div className="absolute -top-24 -right-24 w-48 h-48 rounded-full bg-[#10a37f]/15 blur-3xl pointer-events-none" />
             <div className="absolute -bottom-24 -left-24 w-48 h-48 rounded-full bg-[#0ea5e9]/15 blur-3xl pointer-events-none" />
 
-            {/* Error banner for Step 1 & 2 */}
-            {step !== 3 && displayedError && (
+            {/* Error banner */}
+            {displayedError && (
               <div className="mb-5 px-3.5 py-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs flex items-start gap-2 animate-in fade-in">
                 <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                 <span className="flex-1">{displayedError}</span>

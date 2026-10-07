@@ -177,7 +177,6 @@ api.interceptors.response.use(
       url.includes("/auth/login") ||
       url.includes("/auth/register") ||
       url.includes("/auth/refresh") ||
-      url.includes("/auth/verify-otp") ||
       url.includes("/auth/logout");
 
     // Do not attempt refresh on auth endpoints or if request was already retried
