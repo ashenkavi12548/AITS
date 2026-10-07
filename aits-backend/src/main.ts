@@ -91,8 +91,8 @@ async function bootstrap() {
     'http://localhost:3001',
     'http://127.0.0.1:3000',
     'http://127.0.0.1:3001',
-    'https://unique-education-production-a86b.up.railway.app',
-    'https://unique-education-production-a86b.up.railway.app/',
+    'https://mellow-cat-production-ebe8.up.railway.app/',
+    'https://mellow-cat-production-ebe8.up.railway.app',
   ];
 
   const configuredOrigins: string[] = process.env.ALLOWED_ORIGINS
