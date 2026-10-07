@@ -1,9 +1,3 @@
-export interface SendVerificationEmailOptions {
-  to: string;
-  firstName: string;
-  token: string;
-  otp?: string;
-}
 
 export interface SendEmployeeWelcomeOptions {
   to: string;

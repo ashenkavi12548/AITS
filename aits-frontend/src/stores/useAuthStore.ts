@@ -223,7 +223,8 @@ export const useAuthStore = create<AuthState>()(
 
           set({
             user: response.user,
-            isAuthenticated: false, // Requires OTP verification to fully authenticate
+            isAuthenticated: true,
+            isInitialized: true,
             isLoading: false,
             error: null,
           });

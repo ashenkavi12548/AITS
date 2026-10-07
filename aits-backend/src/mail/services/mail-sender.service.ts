@@ -1,7 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Resend } from 'resend';
 import {
-  SendVerificationEmailOptions,
   SendEmployeeWelcomeOptions,
   SendPasswordResetOptions,
   SendScheduleAlertOptions,
@@ -45,114 +44,6 @@ export class MailSenderService {
     }
   }
 
-  /**
-   * Send Email Verification OTP & Link to Farmer / User
-   */
-  async sendVerificationEmail(
-    options: SendVerificationEmailOptions,
-  ): Promise<boolean> {
-    const { to, firstName, token, otp } = options;
-    const displayOtp = otp || token;
-    const verificationUrl = `${this.frontendUrl}/verify-email?token=${encodeURIComponent(token)}&email=${encodeURIComponent(to)}`;
-
-    const contentHtml = `
-      <h1 style="font-size: 22px; font-weight: 800; color: #0f172a; margin: 0 0 16px 0; letter-spacing: -0.5px;">
-        Verify Your Farm Account
-      </h1>
-      
-      <p style="margin: 0 0 14px 0; color: #334155; font-size: 15px;">
-        Hello <strong style="color: #0f172a;">${firstName}</strong>,
-      </p>
-
-      <p style="margin: 0 0 24px 0; color: #475569; font-size: 14px; line-height: 22px;">
-        Thank you for registering with the <strong>Animal Identification &amp; Traceability System (AITS)</strong>. To activate your account and secure your farm workspace, please use the verification code below:
-      </p>
-
-      <!-- OTP Card Box -->
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin: 0 0 24px 0;">
-        <tr>
-          <td align="center" style="background-color: #f0fdf4; border: 2px dashed #10a37f; border-radius: 16px; padding: 24px 16px; text-align: center;">
-            <div style="font-size: 11px; font-weight: 700; color: #047857; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px;">
-              Your One-Time Verification Code
-            </div>
-            <div class="otp-text" style="font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace; font-size: 38px; font-weight: 800; letter-spacing: 12px; color: #065f46; margin: 4px 0 10px 10px; line-height: 1.2;">
-              ${displayOtp}
-            </div>
-            <div style="font-size: 12px; color: #047857; font-weight: 600;">
-              &#9201; Expires in 15 minutes &bull; Single-use verification
-            </div>
-          </td>
-        </tr>
-      </table>
-
-      <!-- CTA Button -->
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin: 0 0 24px 0;">
-        <tr>
-          <td align="center">
-            <table role="presentation" cellpadding="0" cellspacing="0" border="0">
-              <tr>
-                <td align="center" style="border-radius: 12px; background-color: #10a37f; box-shadow: 0 4px 14px rgba(16, 163, 127, 0.35);">
-                  <a href="${verificationUrl}" target="_blank" style="font-size: 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 12px; font-weight: 700; display: inline-block; letter-spacing: 0.2px;">
-                    Verify Account Automatically &rarr;
-                  </a>
-                </td>
-              </tr>
-            </table>
-          </td>
-        </tr>
-      </table>
-
-      <!-- Fallback Link Section -->
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin: 24px 0 0 0; border-top: 1px solid #f1f5f9; padding-top: 18px;">
-        <tr>
-          <td>
-            <p style="margin: 0 0 8px 0; font-size: 12px; color: #64748b;">
-              Having trouble with the button? Copy and paste this URL into your browser:
-            </p>
-            <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 12px; font-family: monospace; font-size: 11px; word-break: break-all; color: #475569;">
-              <a href="${verificationUrl}" style="color: #10a37f; text-decoration: underline;">${verificationUrl}</a>
-            </div>
-          </td>
-        </tr>
-      </table>
-    `;
-
-    const htmlContent = buildEmailTemplate({
-      badgeText: 'Official Verification',
-      headline: 'Verify Your AITS Account',
-      preheader: `Your AITS verification code is ${displayOtp}. Complete your farm registration now.`,
-      contentHtml,
-    });
-
-    if (this.resend) {
-      try {
-        const { data, error } = await this.resend.emails.send({
-          from: this.from,
-          to,
-          subject: `AITS Verification Code: ${displayOtp}`,
-          html: htmlContent,
-        });
-
-        if (error) {
-          this.logger.error(`Resend API Error sending verification to ${to}: ${error.message}`);
-          return false;
-        }
-
-        this.logger.log(`Verification OTP successfully dispatched to ${to} (ID: ${data?.id})`);
-        return true;
-      } catch (error: unknown) {
-        const errorMsg = error instanceof Error ? error.message : String(error);
-        this.logger.error(
-          `Failed to send email via Resend to ${to}: ${errorMsg}`,
-        );
-        this.logFallbackVerification(to, displayOtp, verificationUrl);
-        return false;
-      }
-    } else {
-      this.logFallbackVerification(to, displayOtp, verificationUrl);
-      return true;
-    }
-  }
 
   /**
    * Send Employee / Staff Welcome Email with credentials
@@ -511,21 +402,5 @@ export class MailSenderService {
     }
   }
 
-  private logFallbackVerification(to: string, otp: string, url: string) {
-    if (process.env.NODE_ENV === 'production') {
-      this.logger.warn(
-        `[DEV / MOCK EMAIL DISPATCH] Mock dispatch bypassed in production for ${to}. Email was NOT sent.`,
-      );
-      return;
-    }
-    this.logger.warn(
-      `\n=======================================================\n` +
-        `[DEV / MOCK EMAIL DISPATCH]\n` +
-        `To: ${to}\n` +
-        `Subject: Your AITS Verification Code: ${otp}\n` +
-        `OTP Code: ${otp}\n` +
-        `Verification Link: ${url}\n` +
-        `=======================================================\n`,
-    );
-  }
+
 }

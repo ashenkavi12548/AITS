@@ -41,11 +41,7 @@ export class AuthLifecycleService {
     });
 
     if (existing) {
-      if (!existing.isEmailVerified) {
-        throw new ConflictException(
-          'Account exists but is not verified. Please use the resend verification option to get a new OTP.',
-        );
-      }
+
       throw new ConflictException(
         'An account with this email address already exists. Please sign in instead.',
       );

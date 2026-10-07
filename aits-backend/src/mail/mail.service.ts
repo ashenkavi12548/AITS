@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { MailSenderService } from './services';
 import {
-  SendVerificationEmailOptions,
   SendEmployeeWelcomeOptions,
   SendPasswordResetOptions,
   SendScheduleAlertOptions,
@@ -13,12 +12,6 @@ import {
 @Injectable()
 export class MailService {
   constructor(private readonly mailSenderService: MailSenderService) {}
-
-  async sendVerificationEmail(
-    options: SendVerificationEmailOptions,
-  ): Promise<boolean> {
-    return this.mailSenderService.sendVerificationEmail(options);
-  }
 
   async sendEmployeeWelcome(
     options: SendEmployeeWelcomeOptions,

@@ -277,8 +277,4 @@ export class AuthProfileService {
       user: this.common.formatUser(user),
     };
   }
-
-  /**
-   * Verify email address with 6-digit OTP code with attempt limiting and SHA-256 hash comparison.
-   */
 }
