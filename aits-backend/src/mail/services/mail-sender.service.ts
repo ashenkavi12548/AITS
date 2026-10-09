@@ -34,7 +34,9 @@ export class MailSenderService {
       }
     } else {
       if (process.env.NODE_ENV === 'production') {
-        this.logger.warn('RESEND_API_KEY is missing in production. Email dispatch is disabled.');
+        this.logger.warn(
+          'RESEND_API_KEY is missing in production. Email dispatch is disabled.',
+        );
       } else {
         this.logger.log(
           'RESEND_API_KEY is empty. Running in development/mock mail mode (verification links will be logged to console).',
@@ -43,7 +45,6 @@ export class MailSenderService {
       this.resend = null;
     }
   }
-
 
   /**
    * Send Employee / Staff Welcome Email with credentials
@@ -135,15 +136,21 @@ export class MailSenderService {
         });
 
         if (error) {
-          this.logger.error(`Resend API Error sending welcome email to ${to}: ${error.message}`);
+          this.logger.error(
+            `Resend API Error sending welcome email to ${to}: ${error.message}`,
+          );
           return false;
         }
 
-        this.logger.log(`Employee welcome email sent to ${to} (ID: ${data?.id})`);
+        this.logger.log(
+          `Employee welcome email sent to ${to} (ID: ${data?.id})`,
+        );
         return true;
       } catch (error: unknown) {
         const errorMsg = error instanceof Error ? error.message : String(error);
-        this.logger.error(`Failed to send welcome email via Resend to ${to}: ${errorMsg}`);
+        this.logger.error(
+          `Failed to send welcome email via Resend to ${to}: ${errorMsg}`,
+        );
         return false;
       }
     }
@@ -223,7 +230,9 @@ export class MailSenderService {
         });
 
         if (error) {
-          this.logger.error(`Resend API Error sending password reset to ${to}: ${error.message}`);
+          this.logger.error(
+            `Resend API Error sending password reset to ${to}: ${error.message}`,
+          );
           return false;
         }
 
@@ -372,7 +381,9 @@ export class MailSenderService {
         });
 
         if (error) {
-          this.logger.error(`Resend API Error sending schedule alert to ${to}: ${error.message}`);
+          this.logger.error(
+            `Resend API Error sending schedule alert to ${to}: ${error.message}`,
+          );
           return false;
         }
 
@@ -401,6 +412,4 @@ export class MailSenderService {
       return true;
     }
   }
-
-
 }

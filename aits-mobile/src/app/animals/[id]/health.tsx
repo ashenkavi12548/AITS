@@ -18,7 +18,7 @@ import { VaccinationEditModal } from "@/components/animal/VaccinationEditModal";
 export default function AnimalHealthScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [tab, setTab] = useState<"DIAGNOSES" | "VACCINATIONS">("DIAGNOSES");
-  const [selectedVaccination, setSelectedVaccination] = useState<any>(null);
+  const [selectedVaccination, setSelectedVaccination] = useState<import("@/services/health.service").VaccinationRecordItem | null>(null);
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const { hasPermissionOnFarm } = useAuthStore();
   const canAdd = hasPermissionOnFarm("MANAGE_HEALTH"); // Basic check
@@ -39,11 +39,11 @@ export default function AnimalHealthScreen() {
   const listData =
     tab === "DIAGNOSES" ? diagnoses?.data || [] : vaccinations?.data || [];
 
-  const renderDiagnosis = ({ item }: { item: any }) => (
+  const renderDiagnosis = ({ item }: { item: import("@/services/health.service").DiagnosisItem }) => (
     <View style={styles.card}>
       <View style={styles.cardHeader}>
         <Text style={styles.cardTitle}>
-          {item.disease?.name || "Unknown Disease"}
+          {item.condition || "Unknown Condition"}
         </Text>
         <View
           style={[
@@ -64,35 +64,34 @@ export default function AnimalHealthScreen() {
         </View>
       </View>
       <Text style={styles.date}>
-        Date: {new Date(item.diagnosedDate).toLocaleDateString()}
+        Date: {new Date(item.date).toLocaleDateString()}
       </Text>
       {item.notes && <Text style={styles.notes}>{item.notes}</Text>}
     </View>
   );
 
-  const renderVaccination = ({ item }: { item: any }) => (
+  const renderVaccination = ({ item }: { item: import("@/services/health.service").VaccinationRecordItem }) => (
     <View style={styles.card}>
       <View style={styles.cardHeader}>
         <Text style={styles.cardTitle}>
-          {item.disease?.name || item.vaccineName || "General Vaccine"}
+          {item.vaccine || "General Vaccine"}
         </Text>
         <Text style={styles.date}>
           {new Date(
-            item.administeredDate || item.vaccinationDate,
+            item.date,
           ).toLocaleDateString()}
         </Text>
       </View>
       <Text style={styles.notes}>Dose: {item.dose || "N/A"}</Text>
       <Text style={styles.notes}>
         Next Booster:{" "}
-        {item.nextDueDate
-          ? new Date(item.nextDueDate).toLocaleDateString()
+        {item.nextDue
+          ? new Date(item.nextDue).toLocaleDateString()
           : "None"}
       </Text>
       <View style={styles.cardFooter}>
         <Text style={styles.notes}>
-          By: {item.administeredBy?.firstName || ""}{" "}
-          {item.administeredBy?.lastName || ""}
+          By: {item.vet || ""}
         </Text>
         <TouchableOpacity
           style={styles.editBtn}
@@ -156,11 +155,21 @@ export default function AnimalHealthScreen() {
 
       {isLoading ? (
         <ActivityIndicator style={{ marginTop: 20 }} />
+      ) : tab === "DIAGNOSES" ? (
+        <FlatList
+          data={diagnoses?.data || []}
+          keyExtractor={(item) => (item as import("@/services/health.service").DiagnosisItem).id}
+          renderItem={renderDiagnosis as any}
+          contentContainerStyle={{ paddingBottom: Spacing.four }}
+          ListEmptyComponent={
+            <Text style={styles.emptyText}>No records found.</Text>
+          }
+        />
       ) : (
         <FlatList
-          data={listData}
-          keyExtractor={(item) => item.id}
-          renderItem={tab === "DIAGNOSES" ? renderDiagnosis : renderVaccination}
+          data={vaccinations?.data || []}
+          keyExtractor={(item) => (item as import("@/services/health.service").VaccinationRecordItem).id}
+          renderItem={renderVaccination as any}
           contentContainerStyle={{ paddingBottom: Spacing.four }}
           ListEmptyComponent={
             <Text style={styles.emptyText}>No records found.</Text>

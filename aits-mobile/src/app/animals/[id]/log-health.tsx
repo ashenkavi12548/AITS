@@ -197,7 +197,8 @@ export default function LogHealthScreen() {
         text2: "Medical record synchronized.",
       });
       router.back();
-    } catch (err: any) {
+    } catch (error_unk: unknown) {
+      const err = error_unk as { response?: { data?: { message?: string | string[] } }; message?: string };
       const msg =
         err.response?.data?.message || err.message || "TRANSMISSION FAILED";
       Toast.show({

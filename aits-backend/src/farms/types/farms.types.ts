@@ -9,7 +9,6 @@ export interface SanitizedEmployeeUser {
   phone: string | null;
   profileImageUrl: string | null;
   status: string;
-  isEmailVerified: boolean;
   lastLoginAt: Date | null;
   createdAt: Date;
   permissions: string[];

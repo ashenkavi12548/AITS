@@ -1,11 +1,10 @@
-import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
+import axios, { AxiosError, InternalAxiosRequestConfig, AxiosResponse, AxiosRequestHeaders } from "axios";
 import { storage as SecureStore } from "@/utils/storage";
 import { Platform } from "react-native";
+import Constants from "expo-constants";
 
 const FRIENDLY_403_MSG =
   "Access denied. You don't have permission to perform this action.";
-
-import Constants from "expo-constants";
 
 const getBaseUrl = () => {
   if (process.env.EXPO_PUBLIC_API_URL) {
@@ -44,6 +43,8 @@ export default api;
 
 interface CustomAxiosRequestConfig extends InternalAxiosRequestConfig {
   _retry?: boolean;
+  url?: string;
+  headers: AxiosRequestHeaders;
 }
 
 let unauthorizedHandler: (() => void) | null = null;
@@ -53,7 +54,7 @@ export const setUnauthorizedHandler = (handler: () => void) => {
 
 let isRefreshing = false;
 let failedQueue: {
-  resolve: (value?: unknown) => void;
+  resolve: (value: void | PromiseLike<void>) => void;
   reject: (reason?: unknown) => void;
 }[] = [];
 
@@ -75,7 +76,7 @@ api.interceptors.request.use(
       if (token && !config.headers.Authorization) {
         config.headers.Authorization = `Bearer ${token}`;
       }
-    } catch (e) {
+    } catch {
       // Ignore secure store errors gracefully
     }
     return config;
@@ -87,7 +88,7 @@ api.interceptors.request.use(
 );
 
 api.interceptors.response.use(
-  (response) => response,
+  (response: AxiosResponse) => response,
   async (error: AxiosError) => {
     console.error(`[API Response Error] ${error.message}`, {
       url: error.config?.url,
@@ -116,7 +117,6 @@ api.interceptors.response.use(
       url.includes("/auth/login") ||
       url.includes("/auth/register") ||
       url.includes("/auth/refresh") ||
-      url.includes("/auth/verify-otp") ||
       url.includes("/auth/logout");
 
     if (isAuthUrl || originalRequest._retry) {
@@ -129,7 +129,7 @@ api.interceptors.response.use(
     }
 
     if (isRefreshing) {
-      return new Promise((resolve, reject) => {
+      return new Promise<void>((resolve, reject) => {
         failedQueue.push({ resolve, reject });
       })
         .then(async () => {
@@ -140,7 +140,7 @@ api.interceptors.response.use(
           }
           return api(originalRequest);
         })
-        .catch((err) => Promise.reject(err));
+        .catch((err: unknown) => Promise.reject(err));
     }
 
     originalRequest._retry = true;

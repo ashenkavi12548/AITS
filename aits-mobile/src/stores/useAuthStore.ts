@@ -139,7 +139,8 @@ export const useAuthStore = create<AuthState>()(
               isLoading: false,
               error: null,
             });
-          } catch (err: unknown) {
+          } catch (error_unk: unknown) {
+      const err = error_unk as { response?: { data?: { message?: string | string[] } }; message?: string };
             const is401 =
               err &&
               typeof err === 'object' &&
@@ -192,7 +193,8 @@ export const useAuthStore = create<AuthState>()(
             error: null,
           });
           return true;
-        } catch (err: unknown) {
+        } catch (error_unk: unknown) {
+      const err = error_unk as { response?: { data?: { message?: string | string[] } }; message?: string };
           const message = getErrorMessage(
             err,
             'Authentication failed. Please check your credentials.',
@@ -209,7 +211,7 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true, error: null });
         try {
           await authService.logout();
-        } catch (err) {
+        } catch {
           // ignore
         } finally {
           await SecureStore.deleteItemAsync('aits_access_token');

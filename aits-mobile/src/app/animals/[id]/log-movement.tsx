@@ -77,7 +77,8 @@ export default function LogMovementScreen() {
         text2: "Relocation protocol initiated.",
       });
       router.back();
-    } catch (err: any) {
+    } catch (error_unk: unknown) {
+      const err = error_unk as { response?: { data?: { message?: string | string[] } }; message?: string };
       const msg =
         err.response?.data?.message || err.message || "TRANSFER FAILED";
       Toast.show({
@@ -160,7 +161,7 @@ export default function LogMovementScreen() {
                 <TouchableOpacity
                   key={r.id}
                   style={[styles.chip, reason === r.id && styles.chipActive]}
-                  onPress={() => setReason(r.id as any)}
+                  onPress={() => setReason(r.id as never)}
                 >
                   <Text
                     style={[

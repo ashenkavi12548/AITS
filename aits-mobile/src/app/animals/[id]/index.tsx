@@ -54,8 +54,9 @@ export default function AnimalInfoScreen() {
                 text1: "Success",
                 text2: "Animal deleted successfully.",
               });
-              router.replace("/(tabs)" as any);
-            } catch (err: any) {
+              router.replace("/(tabs)" as never);
+            } catch (error_unk: unknown) {
+      const err = error_unk as { response?: { data?: { message?: string | string[] } }; message?: string };
               Toast.show({
                 type: "error",
                 text1: "Error",
@@ -222,7 +223,7 @@ export default function AnimalInfoScreen() {
         <View style={styles.quickActionsGrid}>
           <TouchableOpacity
             style={styles.quickActionBtn}
-            onPress={() => router.push(`/animals/${id}/log-health` as any)}
+            onPress={() => router.push(`/animals/${id}/log-health` as never)}
           >
             <MaterialCommunityIcons
               name="medical-bag"
@@ -233,7 +234,7 @@ export default function AnimalInfoScreen() {
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.quickActionBtn}
-            onPress={() => router.push(`/animals/${id}/health` as any)}
+            onPress={() => router.push(`/animals/${id}/health` as never)}
           >
             <MaterialCommunityIcons name="history" size={24} color="#ef4444" />
             <Text style={styles.quickActionText}>Health History</Text>
@@ -242,7 +243,7 @@ export default function AnimalInfoScreen() {
             <>
               <TouchableOpacity
                 style={styles.quickActionBtn}
-                onPress={() => router.push(`/animals/${id}/log-milk` as any)}
+                onPress={() => router.push(`/animals/${id}/log-milk` as never)}
               >
                 <MaterialCommunityIcons
                   name="cup-water"
@@ -253,7 +254,7 @@ export default function AnimalInfoScreen() {
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.quickActionBtn}
-                onPress={() => router.push(`/animals/${id}/production` as any)}
+                onPress={() => router.push(`/animals/${id}/production` as never)}
               >
                 <MaterialCommunityIcons
                   name="chart-bar"
@@ -264,7 +265,7 @@ export default function AnimalInfoScreen() {
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.quickActionBtn}
-                onPress={() => router.push(`/animals/${id}/log-breeding` as any)}
+                onPress={() => router.push(`/animals/${id}/log-breeding` as never)}
               >
                 <MaterialCommunityIcons name="cow" size={24} color="#8b5cf6" />
                 <Text style={styles.quickActionText}>Breeding</Text>
@@ -274,7 +275,7 @@ export default function AnimalInfoScreen() {
           {animal.status !== "QUARANTINED" && (
             <TouchableOpacity
               style={styles.quickActionBtn}
-              onPress={() => router.push(`/animals/${id}/log-movement` as any)}
+              onPress={() => router.push(`/animals/${id}/log-movement` as never)}
             >
               <MaterialCommunityIcons
                 name="truck-outline"
@@ -286,7 +287,7 @@ export default function AnimalInfoScreen() {
           )}
           <TouchableOpacity
             style={styles.quickActionBtn}
-            onPress={() => router.push(`/animals/${id}/traceability` as any)}
+            onPress={() => router.push(`/animals/${id}/traceability` as never)}
           >
             <MaterialCommunityIcons
               name="map-marker-path"

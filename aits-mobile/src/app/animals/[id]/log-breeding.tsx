@@ -181,7 +181,8 @@ export default function LogBreedingScreen() {
         text2: "Breeding data synchronized.",
       });
       router.back();
-    } catch (err: any) {
+    } catch (error_unk: unknown) {
+      const err = error_unk as { response?: { data?: { message?: string | string[] } }; message?: string };
       const msg =
         err.response?.data?.message || err.message || "TRANSMISSION FAILED";
       Toast.show({
@@ -259,7 +260,7 @@ export default function LogBreedingScreen() {
                         styles.chip,
                         method === m.id && styles.chipActive,
                       ]}
-                      onPress={() => setMethod(m.id as any)}
+                      onPress={() => setMethod(m.id as never)}
                     >
                       <Text
                         style={[
@@ -322,7 +323,7 @@ export default function LogBreedingScreen() {
                         styles.chip,
                         checkType === c.id && styles.chipActive,
                       ]}
-                      onPress={() => setCheckType(c.id as any)}
+                      onPress={() => setCheckType(c.id as never)}
                     >
                       <Text
                         style={[
@@ -350,7 +351,7 @@ export default function LogBreedingScreen() {
                         styles.chip,
                         pregStatus === s.id && styles.chipActive,
                       ]}
-                      onPress={() => setPregStatus(s.id as any)}
+                      onPress={() => setPregStatus(s.id as never)}
                     >
                       <Text
                         style={[
@@ -383,7 +384,7 @@ export default function LogBreedingScreen() {
                         styles.chip,
                         calvingStatus === s.id && styles.chipActive,
                       ]}
-                      onPress={() => setCalvingStatus(s.id as any)}
+                      onPress={() => setCalvingStatus(s.id as never)}
                     >
                       <Text
                         style={[
@@ -407,7 +408,7 @@ export default function LogBreedingScreen() {
                         styles.chip,
                         calfGender === g && styles.chipActive,
                       ]}
-                      onPress={() => setCalfGender(g as any)}
+                      onPress={() => setCalfGender(g as never)}
                     >
                       <Text
                         style={[

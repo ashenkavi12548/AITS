@@ -16,11 +16,22 @@ import { MaterialCommunityIcons, Ionicons } from "@expo/vector-icons";
 import { Colors, Spacing } from "@/constants/theme";
 import { healthService } from "@/services/health.service";
 
+export interface VaccinationRecord {
+  id: string;
+  disease?: { name: string };
+  vaccineName?: string;
+  dose?: string;
+  administeredDate?: string;
+  vaccinationDate?: string;
+  nextDueDate?: string;
+  status?: string;
+}
+
 interface VaccinationEditModalProps {
   visible: boolean;
   onClose: () => void;
   onSuccess: () => void;
-  vaccination: any;
+  vaccination: VaccinationRecord | null;
   animalNumber: string;
 }
 
@@ -41,22 +52,24 @@ export const VaccinationEditModal = ({
 
   useEffect(() => {
     if (vaccination && visible) {
-      setVaccineName(
-        vaccination.disease?.name || vaccination.vaccineName || "",
-      );
-      setDose(vaccination.dose || "");
-      setDate(
-        vaccination.administeredDate
-          ? vaccination.administeredDate.split("T")[0]
-          : vaccination.vaccinationDate
-            ? vaccination.vaccinationDate.split("T")[0]
-            : "",
-      );
-      setNextDueDate(
-        vaccination.nextDueDate ? vaccination.nextDueDate.split("T")[0] : "",
-      );
-      setStatus(vaccination.status || "COMPLETED");
-      setError(null);
+      setTimeout(() => {
+        setVaccineName(
+          vaccination.disease?.name || vaccination.vaccineName || "",
+        );
+        setDose(vaccination.dose || "");
+        setDate(
+          vaccination.administeredDate
+            ? vaccination.administeredDate.split("T")[0]
+            : vaccination.vaccinationDate
+              ? vaccination.vaccinationDate.split("T")[0]
+              : "",
+        );
+        setNextDueDate(
+          vaccination.nextDueDate ? vaccination.nextDueDate.split("T")[0] : "",
+        );
+        setStatus(vaccination.status || "COMPLETED");
+        setError(null);
+      }, 0);
     }
   }, [vaccination, visible]);
 
@@ -71,7 +84,7 @@ export const VaccinationEditModal = ({
         dose,
         nextDueDate: nextDueDate || undefined,
         status,
-      } as any);
+      } as never);
 
       Alert.alert("Success", "Vaccination record updated successfully.", [
         {
@@ -82,12 +95,18 @@ export const VaccinationEditModal = ({
           },
         },
       ]);
-    } catch (err: any) {
-      const msg =
-        err.response?.data?.message ||
-        err.message ||
-        "Failed to update vaccination";
-      setError(Array.isArray(msg) ? msg.join(", ") : msg);
+    } catch (error_unk: unknown) {
+      const err = error_unk as { response?: { data?: { message?: string | string[] } }; message?: string };
+      let msg = "Failed to update vaccination";
+      if (err instanceof Error) {
+        msg = err.message;
+      }
+      const axiosErr = err as { response?: { data?: { message?: string | string[] } } };
+      if (axiosErr.response?.data?.message) {
+        const dataMsg = axiosErr.response.data.message;
+        msg = Array.isArray(dataMsg) ? dataMsg.join(", ") : dataMsg;
+      }
+      setError(msg);
     } finally {
       setIsSubmitting(false);
     }

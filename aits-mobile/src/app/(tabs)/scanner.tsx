@@ -159,7 +159,8 @@ export default function ScannerScreen() {
 
       const response = await animalsService.getAnimalById(animalId);
       openActionOverlay(response);
-    } catch (err: any) {
+    } catch (error_unk: unknown) {
+      const err = error_unk as { response?: { data?: { message?: string | string[] } }; message?: string };
       setError(err.message || "Invalid QR Code");
       setIsProcessing(false);
     }
@@ -168,7 +169,7 @@ export default function ScannerScreen() {
   const handleSelectAnimal = (animal: AnimalItem) => {
     Keyboard.dismiss();
     setQuery("");
-    router.push(`/animals/${animal.id}` as any);
+    router.push(`/animals/${animal.id}` as never);
   };
 
   const getActionsForAnimal = (animal: AnimalItem): ActionItem[] => {
@@ -181,7 +182,7 @@ export default function ScannerScreen() {
         color: Colors.light.primary,
         onPress: () => {
           closeOverlay();
-          router.push(`/animals/${animal.id}/log-milk` as any);
+          router.push(`/animals/${animal.id}/log-milk` as never);
         },
         disabled: animal.gender === "MALE",
       },
@@ -193,7 +194,7 @@ export default function ScannerScreen() {
         color: Colors.light.primary,
         onPress: () => {
           closeOverlay();
-          router.push(`/animals/${animal.id}/log-health` as any);
+          router.push(`/animals/${animal.id}/log-health` as never);
         },
       },
       {
@@ -204,7 +205,7 @@ export default function ScannerScreen() {
         color: Colors.light.primary,
         onPress: () => {
           closeOverlay();
-          router.push(`/animals/${animal.id}/log-breeding` as any);
+          router.push(`/animals/${animal.id}/log-breeding` as never);
         },
       },
       {
@@ -215,7 +216,7 @@ export default function ScannerScreen() {
         color: Colors.light.primary,
         onPress: () => {
           closeOverlay();
-          router.push(`/animals/${animal.id}/log-movement` as any);
+          router.push(`/animals/${animal.id}/log-movement` as never);
         },
       },
       {
@@ -226,7 +227,7 @@ export default function ScannerScreen() {
         color: Colors.light.primary,
         onPress: () => {
           closeOverlay();
-          router.push(`/animals/${animal.id}` as any);
+          router.push(`/animals/${animal.id}` as never);
         },
       },
     ];
@@ -260,7 +261,7 @@ export default function ScannerScreen() {
             <TouchableOpacity
               className="flex-row items-center bg-[#10a37f] px-3 py-2 rounded-full shadow-md"
               style={{ elevation: 4 }}
-              onPress={() => router.push("/animals/register" as any)}
+              onPress={() => router.push("/animals/register" as never)}
             >
               <Ionicons name="add" size={24} color="#fff" />
               <Text className="text-white font-bold ml-1 text-sm">
@@ -355,7 +356,7 @@ export default function ScannerScreen() {
                   {canRegister && (
                     <TouchableOpacity
                       className="flex-row items-center bg-[#e6f7f2] px-4 py-2.5 rounded-lg border border-[#10a37f] mt-2"
-                      onPress={() => router.push("/animals/register" as any)}
+                      onPress={() => router.push("/animals/register" as never)}
                     >
                       <Ionicons
                         name="add-circle-outline"

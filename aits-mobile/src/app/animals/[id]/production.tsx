@@ -52,7 +52,7 @@ export default function MilkProductionScreen() {
         date: new Date().toISOString(),
         quantityLiters: data.quantityLiters,
         session: data.milkingSession,
-        qualityStatus: "NORMAL" as any,
+        qualityStatus: "NORMAL" as never,
       });
     },
     onSuccess: () => {
@@ -65,12 +65,12 @@ export default function MilkProductionScreen() {
         text2: "Milk record added successfully.",
       });
     },
-    onError: (err: any) => {
+    onError: (err: unknown) => {
       Toast.show({
         type: "error",
         text1: "Error",
         text2:
-          err.response?.data?.message || err.message || "Failed to add record",
+          (err as { response?: { data?: { message?: string } }; message?: string }).response?.data?.message || (err as Error).message || "Failed to add record",
       });
     },
   });
@@ -88,11 +88,11 @@ export default function MilkProductionScreen() {
     },
   });
 
-  const onSubmit = (data: any) => {
+  const onSubmit = (data: unknown) => {
     mutation.mutate(data);
   };
 
-  const renderItem = ({ item }: { item: any }) => (
+  const renderItem = ({ item }: { item: import("@/types/production").ProductionRecord }) => (
     <View style={styles.card}>
       <Text style={styles.date}>
         {new Date(item.date).toLocaleDateString()}

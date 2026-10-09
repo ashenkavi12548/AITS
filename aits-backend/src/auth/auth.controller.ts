@@ -13,7 +13,6 @@ import {
   HttpStatus,
   Res,
   Req,
-  Query,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import type { Request, Response } from 'express';
@@ -95,8 +94,6 @@ export class AuthController {
     setAuthCookies(res, result.accessToken, result.refreshToken);
     return result;
   }
-
-
 
   @Public()
   @Post('login')

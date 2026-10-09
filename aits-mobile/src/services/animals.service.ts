@@ -1,4 +1,4 @@
-import api from './api';
+import api, { API_BASE_URL } from './api';
 import type {
   AnimalItem,
   AnimalDetailResponse,
@@ -186,7 +186,6 @@ export const animalsService = {
    * Get export URL for downloading filtered herd CSV
    */
   getExportUrl: (params?: AnimalQueryParams): string => {
-    const { API_BASE_URL } = require('./api');
     const baseUrl = API_BASE_URL;
     const query = new URLSearchParams();
     if (params?.search) query.append('search', params.search);
@@ -203,10 +202,10 @@ export const animalsService = {
    * Upload animal photo to Cloudinary / cloud storage
    */
   uploadPhoto: async (
-    file: any,
+    file: unknown,
   ): Promise<{ success: boolean; imageUrl: string; publicId: string }> => {
     const formData = new FormData();
-    formData.append('file', file as any);
+    formData.append('file', file as never);
     const response = await api.post<{
       success: boolean;
       imageUrl: string;

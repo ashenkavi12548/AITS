@@ -9,8 +9,6 @@ import { SurveillanceService } from './surveillance.service';
 
 describe('HealthService - Vaccinations', () => {
   let service: HealthService;
-  let prismaService: PrismaService;
-  let farmAccessService: FarmAccessService;
 
   const mockPrismaService = {
     animal: {
@@ -55,8 +53,6 @@ describe('HealthService - Vaccinations', () => {
     }).compile();
 
     service = module.get<HealthService>(HealthService);
-    prismaService = module.get<PrismaService>(PrismaService);
-    farmAccessService = module.get<FarmAccessService>(FarmAccessService);
   });
 
   afterEach(() => {

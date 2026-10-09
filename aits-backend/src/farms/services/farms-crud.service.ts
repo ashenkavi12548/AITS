@@ -168,6 +168,21 @@ export class FarmsCrudService {
         },
       });
 
+      const auditPayload: Record<string, unknown> = {
+        ...(dto.name !== undefined && { name: dto.name }),
+        ...(dto.farmType !== undefined && { farmType: dto.farmType }),
+        ...(dto.address !== undefined && { address: dto.address }),
+        ...(dto.province !== undefined && { province: dto.province }),
+        ...(dto.district !== undefined && { district: dto.district }),
+        ...(dto.city !== undefined && { city: dto.city }),
+        ...(dto.contactNumber !== undefined && {
+          contactNumber: dto.contactNumber,
+        }),
+        ...(dto.status !== undefined && { status: dto.status }),
+        ...(dto.latitude !== undefined && { latitude: dto.latitude }),
+        ...(dto.longitude !== undefined && { longitude: dto.longitude }),
+      };
+
       await createAuditRecord(
         tx,
         userId,
@@ -175,7 +190,7 @@ export class FarmsCrudService {
         'Farm',
         farmId,
         oldValues,
-        dto as Record<string, unknown>,
+        auditPayload,
         auditContext,
       );
 

@@ -7,8 +7,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
-import { MailService } from '../../mail/mail.service';
-import { RoleName, UserStatus } from '@prisma/client';
+import { Prisma, User, Role } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { LoginDto, RegisterDto } from '../dto';
 import { AuthResponse, RequestClientMeta } from '../types/auth.types';
@@ -21,10 +20,9 @@ export class AuthLifecycleService {
 
   constructor(
     private readonly prisma: PrismaService,
-    private readonly mailService: MailService,
     private readonly common: AuthCommonService,
     private readonly tokens: AuthTokensService,
-  ) { }
+  ) {}
 
   async register(
     dto: RegisterDto,
@@ -33,7 +31,7 @@ export class AuthLifecycleService {
     const normalizedEmail = dto.email.toLowerCase().trim();
 
     // 1. Check if user already exists
-    const existing = await this.prisma.user.findFirst({
+    const existing: User | null = await this.prisma.user.findFirst({
       where: {
         email: normalizedEmail,
         deletedAt: null,
@@ -41,7 +39,6 @@ export class AuthLifecycleService {
     });
 
     if (existing) {
-
       throw new ConflictException(
         'An account with this email address already exists. Please sign in instead.',
       );
@@ -51,20 +48,20 @@ export class AuthLifecycleService {
     const passwordHash = await bcrypt.hash(dto.password, 10);
 
     // 3. Resolve role (defaulting to FARMER)
-    const targetRoleName = dto.role || RoleName.FARMER;
+    const targetRoleName = dto.role || 'FARMER';
 
     if (
-      targetRoleName !== RoleName.FARMER &&
-      targetRoleName !== RoleName.MANAGER &&
-      targetRoleName !== RoleName.VETERINARIAN &&
-      targetRoleName !== RoleName.WORKER
+      targetRoleName !== 'FARMER' &&
+      targetRoleName !== 'MANAGER' &&
+      targetRoleName !== 'VETERINARIAN' &&
+      targetRoleName !== 'WORKER'
     ) {
       throw new ForbiddenException(
         'Self-registration is only allowed for operational roles. Privileged roles must be provisioned by an administrator.',
       );
     }
 
-    let role = await this.prisma.role.findUnique({
+    let role: Role | null = await this.prisma.role.findUnique({
       where: { name: targetRoleName },
     });
 
@@ -78,69 +75,71 @@ export class AuthLifecycleService {
     }
 
     // 5. Create user, role link, farm, and preferences in a single transaction
-    const createdUser = await this.prisma.$transaction(async (tx) => {
-      const newUser = await tx.user.create({
-        data: {
-          firstName: dto.firstName.trim(),
-          lastName: dto.lastName.trim(),
-          email: normalizedEmail,
-          phone: dto.phone?.trim() || null,
-          passwordHash,
-          status: UserStatus.ACTIVE,
-        },
-      });
-
-      // Link User to Role
-      await tx.userRole.create({
-        data: {
-          userId: newUser.id,
-          roleId: role.id,
-        },
-      });
-
-      // Only create a farm if the user is registering as a FARMER
-      if (targetRoleName === RoleName.FARMER) {
-        const farmName =
-          dto.farmName?.trim() || `${dto.firstName}'s Livestock Facility`;
-        const farm = await tx.farm.create({
+    const createdUser: User = await this.prisma.$transaction(
+      async (tx: Prisma.TransactionClient) => {
+        const newUser = await tx.user.create({
           data: {
-            ownerId: newUser.id,
-            name: farmName,
-            registrationNumber: `FARM-${Date.now().toString().slice(-6)}`,
-            farmType: dto.farmType || 'Dairy & Cattle',
-            address: dto.address || 'Sri Lanka',
-            province: dto.province || 'Central',
-            district: dto.district || 'Kandy',
-            city: dto.city || 'Kandy',
-            contactNumber: dto.phone || '+94000000000',
+            firstName: dto.firstName.trim(),
+            lastName: dto.lastName.trim(),
+            email: normalizedEmail,
+            phone: dto.phone?.trim() || null,
+            passwordHash,
             status: 'ACTIVE',
           },
         });
 
-        await tx.farmUser.create({
+        // Link User to Role
+        await tx.userRole.create({
           data: {
-            farmId: farm.id,
             userId: newUser.id,
-            role: 'OWNER',
-            status: 'ACTIVE',
+            roleId: role.id,
           },
         });
-      }
 
-      // Default notification preferences
-      await tx.notificationPreference.create({
-        data: {
-          userId: newUser.id,
-          vaccinationNotifications: true,
-          feedingNotifications: true,
-          healthNotifications: true,
-          documentNotifications: true,
-          syncNotifications: true,
-        },
-      });
+        // Only create a farm if the user is registering as a FARMER
+        if (targetRoleName === 'FARMER') {
+          const farmName =
+            dto.farmName?.trim() || `${dto.firstName}'s Livestock Facility`;
+          const farm = await tx.farm.create({
+            data: {
+              ownerId: newUser.id,
+              name: farmName,
+              registrationNumber: `FARM-${Date.now().toString().slice(-6)}`,
+              farmType: dto.farmType || 'Dairy & Cattle',
+              address: dto.address || 'Sri Lanka',
+              province: dto.province || 'Central',
+              district: dto.district || 'Kandy',
+              city: dto.city || 'Kandy',
+              contactNumber: dto.phone || '+94000000000',
+              status: 'ACTIVE',
+            },
+          });
 
-      return newUser;
-    });
+          await tx.farmUser.create({
+            data: {
+              farmId: farm.id,
+              userId: newUser.id,
+              role: 'OWNER',
+              status: 'ACTIVE',
+            },
+          });
+        }
+
+        // Default notification preferences
+        await tx.notificationPreference.create({
+          data: {
+            userId: newUser.id,
+            vaccinationNotifications: true,
+            feedingNotifications: true,
+            healthNotifications: true,
+            documentNotifications: true,
+            syncNotifications: true,
+          },
+        });
+
+        return newUser;
+      },
+    );
 
     await this.common.logAuditEvent({
       userId: createdUser.id,
@@ -186,7 +185,6 @@ export class AuthLifecycleService {
     return {
       ...tokens,
       user: sanitized,
-      emailSent: true, // Always return true since we removed email sending
     };
   }
 
@@ -218,14 +216,36 @@ export class AuthLifecycleService {
 
     const uniquePhoneVariants = Array.from(new Set(phoneVariants));
 
-    const user = await this.prisma.user.findFirst({
+    type UserWithRelations = Prisma.UserGetPayload<{
+      include: {
+        userRoles: {
+          include: {
+            role: {
+              include: {
+                rolePermissions: {
+                  include: {
+                    permission: true;
+                  };
+                };
+              };
+            };
+          };
+        };
+        ownedFarms: true;
+        farmMemberships: {
+          include: { farm: true };
+        };
+      };
+    }>;
+
+    const user: UserWithRelations | null = await this.prisma.user.findFirst({
       where: {
         OR: isEmail
           ? [{ email: rawIdentifier.toLowerCase() }]
           : [
-            { email: rawIdentifier.toLowerCase() },
-            ...uniquePhoneVariants.map((p) => ({ phone: p })),
-          ],
+              { email: rawIdentifier.toLowerCase() },
+              ...uniquePhoneVariants.map((p) => ({ phone: p })),
+            ],
         deletedAt: null,
       },
       include: {
@@ -280,7 +300,8 @@ export class AuthLifecycleService {
         userAgent: meta?.userAgent,
       });
       throw new UnauthorizedException(
-        `Account is temporarily locked due to repeated failed login attempts. Please try again in ${waitMinutes} minute${waitMinutes > 1 ? 's' : ''
+        `Account is temporarily locked due to repeated failed login attempts. Please try again in ${waitMinutes} minute${
+          waitMinutes > 1 ? 's' : ''
         }.`,
       );
     }
@@ -327,7 +348,7 @@ export class AuthLifecycleService {
       throw new UnauthorizedException('Invalid credentials.');
     }
 
-    if (user.status !== UserStatus.ACTIVE) {
+    if (user.status !== 'ACTIVE') {
       throw new ForbiddenException(
         'Your account is currently inactive or suspended. Please contact the system administrator.',
       );

@@ -28,7 +28,7 @@ export function CompactAnimalSummary({
     if (onPress) {
       onPress();
     } else {
-      router.push(`/animals/${animal.id}` as any);
+      router.push(`/animals/${animal.id}` as never);
     }
   };
 

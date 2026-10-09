@@ -96,7 +96,9 @@ async function bootstrap() {
   ];
 
   const configuredOrigins: string[] = process.env.ALLOWED_ORIGINS
-    ? process.env.ALLOWED_ORIGINS.split(',').map((o) => o.trim().replace(/\/$/, ''))
+    ? process.env.ALLOWED_ORIGINS.split(',').map((o) =>
+        o.trim().replace(/\/$/, ''),
+      )
     : process.env.FRONTEND_URL
       ? [process.env.FRONTEND_URL.trim().replace(/\/$/, '')]
       : defaultAllowedOrigins;

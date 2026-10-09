@@ -48,12 +48,12 @@ export default function RootLayout() {
       const inAuthGroup = (segments[0] as string) === "(auth)";
 
       if (!isAuthenticated && !inAuthGroup) {
-        router.replace("/(auth)/login" as any);
+        router.replace("/(auth)/login" as never);
       } else if (isAuthenticated && inAuthGroup) {
-        router.replace("/(tabs)" as any);
+        router.replace("/(tabs)" as never);
       }
     }, 0);
-  }, [isAuthenticated, isInitialized, segments]);
+  }, [isAuthenticated, isInitialized, segments, router]);
 
   return (
     <QueryClientProvider client={queryClient}>

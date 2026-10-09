@@ -74,8 +74,6 @@ export interface SanitizedUser {
 
 export interface AuthResponse extends AuthTokens {
   user: SanitizedUser;
-  /** Indicates whether the verification email was successfully dispatched during registration. */
-  emailSent?: boolean;
 }
 
 export interface RefreshTokenPayload {

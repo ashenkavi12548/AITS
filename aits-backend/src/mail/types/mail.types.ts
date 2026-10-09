@@ -1,4 +1,3 @@
-
 export interface SendEmployeeWelcomeOptions {
   to: string;
   firstName: string;

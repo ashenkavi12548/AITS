@@ -20,7 +20,6 @@ import { AuthTokensService } from './services/auth-tokens.service';
 import { AuthLifecycleService } from './services/auth-lifecycle.service';
 import { AuthProfileService } from './services/auth-profile.service';
 
-
 // Re-export all types for backward compatibility
 export type {
   UploadedMulterFile,
@@ -131,6 +130,4 @@ export class AuthService implements OnModuleInit {
   removeProfilePicture(userId: string) {
     return this.profile.removeProfilePicture(userId);
   }
-
-
 }

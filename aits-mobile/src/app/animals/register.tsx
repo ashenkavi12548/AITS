@@ -97,11 +97,12 @@ export default function RegisterAnimalScreen() {
           name: asset.fileName || "upload.jpg",
         };
 
-        const res = await animalsService.uploadPhoto(file as any);
+        const res = await animalsService.uploadPhoto(file as never);
         if (res.imageUrl) {
           setImageUrl(res.imageUrl);
         }
-      } catch (err: any) {
+      } catch (error_unk: unknown) {
+      const err = error_unk as { response?: { data?: { message?: string | string[] } }; message?: string };
         Toast.show({
           type: "error",
           text1: "Upload Error",
@@ -123,7 +124,8 @@ export default function RegisterAnimalScreen() {
         quality: 0.7,
       });
       await handleImageResult(result);
-    } catch (err: any) {
+    } catch (error_unk: unknown) {
+      const err = error_unk as { response?: { data?: { message?: string | string[] } }; message?: string };
       Toast.show({
         type: "error",
         text1: "Gallery Error",
@@ -152,7 +154,8 @@ export default function RegisterAnimalScreen() {
         quality: 0.7,
       });
       await handleImageResult(result);
-    } catch (err: any) {
+    } catch (error_unk: unknown) {
+      const err = error_unk as { response?: { data?: { message?: string | string[] } }; message?: string };
       Toast.show({
         type: "error",
         text1: "Camera Error",
@@ -209,8 +212,9 @@ export default function RegisterAnimalScreen() {
         text1: "Success",
         text2: "Animal registered successfully!",
       });
-      router.replace(`/animals/${response.animal.id}` as any);
-    } catch (err: any) {
+      router.replace(`/animals/${response.animal.id}` as never);
+    } catch (error_unk: unknown) {
+      const err = error_unk as { response?: { data?: { message?: string | string[] } }; message?: string };
       const msg =
         err.response?.data?.message ||
         "Registration failed. Please check field values.";

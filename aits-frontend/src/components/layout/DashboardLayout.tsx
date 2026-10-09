@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import Sidebar from "./Sidebar";
 import TopHeader from "./TopHeader";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { useSidebarStore } from "@/store/useSidebarStore";
-import { useAuthStore } from "@/stores/useAuthStore";
+
 
 
 export default function DashboardLayout({

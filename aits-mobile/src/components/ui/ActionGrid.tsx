@@ -1,12 +1,12 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { MaterialCommunityIcons, Ionicons } from "@expo/vector-icons";
-import { Spacing, Colors } from "@/constants/theme";
+import { Spacing } from "@/constants/theme";
 
 export interface ActionItem {
   id: string;
   label: string;
-  iconName: any;
+  iconName: string;
   iconSet?: "Ionicons" | "MaterialCommunityIcons";
   color: string;
   onPress: () => void;
@@ -38,13 +38,13 @@ export function ActionGrid({ actions }: ActionGridProps) {
           >
             {action.iconSet === "Ionicons" ? (
               <Ionicons
-                name={action.iconName}
+                name={action.iconName as React.ComponentProps<typeof Ionicons>["name"]}
                 size={24}
                 color={action.disabled ? "#475569" : action.color}
               />
             ) : (
               <MaterialCommunityIcons
-                name={action.iconName}
+                name={action.iconName as React.ComponentProps<typeof MaterialCommunityIcons>["name"]}
                 size={24}
                 color={action.disabled ? "#475569" : action.color}
               />

@@ -36,7 +36,6 @@ async function main() {
         passwordHash:
           '$2b$10$epR3Vf.tSgM8z9mIHzXf8e2u2pZ7oI1fI4F2o1/6f.1h4R2y5w5e.', // Placeholder hash
         status: 'ACTIVE',
-        isEmailVerified: true,
       },
     });
   }

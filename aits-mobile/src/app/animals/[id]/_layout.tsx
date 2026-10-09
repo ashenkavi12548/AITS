@@ -68,7 +68,7 @@ export default function AnimalProfileLayout() {
     <SafeAreaView style={styles.container} edges={["top"]}>
       <View style={styles.header}>
         <TouchableOpacity
-          onPress={() => router.push("/(tabs)" as any)}
+          onPress={() => router.push("/(tabs)" as never)}
           style={styles.iconButton}
         >
           <MaterialCommunityIcons name="arrow-left" size={24} color="#0f172a" />
@@ -94,7 +94,7 @@ export default function AnimalProfileLayout() {
             <TouchableOpacity
               key={tab.name}
               style={[styles.tab, isActive && styles.activeTab]}
-              onPress={() => router.replace(tab.path as any)}
+              onPress={() => router.replace(tab.path as never)}
             >
               <Text style={[styles.tabText, isActive && styles.activeTabText]}>
                 {tab.name}

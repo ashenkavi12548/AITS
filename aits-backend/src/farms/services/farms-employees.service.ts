@@ -7,13 +7,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
-import {
-  FarmUserRole,
-  FarmUserStatus,
-  Prisma,
-  RoleName,
-  UserStatus,
-} from '@prisma/client';
+import { Prisma, Farm, User, FarmUser, Role } from '@prisma/client';
 import {
   SanitizedFarmEmployee,
   PaginatedResult,
@@ -43,7 +37,10 @@ export class FarmsEmployeesService {
     farmId: string,
     employeeUserId: string,
   ): Promise<SanitizedFarmEmployee> {
-    const fu = await this.prisma.farmUser.findUnique({
+    type FarmUserWithUser = Prisma.FarmUserGetPayload<{
+      include: { user: true };
+    }>;
+    const fu: FarmUserWithUser | null = await this.prisma.farmUser.findUnique({
       where: { farmId_userId: { farmId, userId: employeeUserId } },
       include: { user: true },
     });
@@ -64,7 +61,6 @@ export class FarmsEmployeesService {
         phone: fu.user.phone,
         profileImageUrl: fu.user.profileImageUrl,
         status: fu.user.status,
-        isEmailVerified: fu.user.isEmailVerified,
         lastLoginAt: fu.user.lastLoginAt,
         createdAt: fu.user.createdAt,
         permissions: [],
@@ -101,14 +97,52 @@ export class FarmsEmployeesService {
       }),
     };
 
+    const sortOrder: Prisma.SortOrder =
+      query?.sortOrder === 'asc' ? 'asc' : 'desc';
     const sortBy = query?.sortBy || 'joinedAt';
-    const sortOrder = query?.sortOrder || 'desc';
+    const orderBy: Prisma.FarmUserOrderByWithRelationInput =
+      sortBy === 'role'
+        ? { role: sortOrder }
+        : sortBy === 'status'
+          ? { status: sortOrder }
+          : { joinedAt: sortOrder };
 
-    const [farmUsers, total] = await Promise.all([
+    type FarmUserWithDeepUser = Prisma.FarmUserGetPayload<{
+      include: {
+        user: {
+          select: {
+            id: true;
+            firstName: true;
+            lastName: true;
+            email: true;
+            phone: true;
+            profileImageUrl: true;
+            status: true;
+            lastLoginAt: true;
+            createdAt: true;
+            userRoles: {
+              include: {
+                role: {
+                  include: {
+                    rolePermissions: {
+                      include: {
+                        permission: true;
+                      };
+                    };
+                  };
+                };
+              };
+            };
+          };
+        };
+      };
+    }>;
+
+    const [farmUsers, total] = (await Promise.all([
       this.prisma.farmUser.findMany({
         where,
         ...(hasPagination && { skip, take: limit }),
-        orderBy: { [sortBy]: sortOrder },
+        orderBy,
         include: {
           user: {
             select: {
@@ -119,7 +153,6 @@ export class FarmsEmployeesService {
               phone: true,
               profileImageUrl: true,
               status: true,
-              isEmailVerified: true,
               lastLoginAt: true,
               createdAt: true,
               userRoles: {
@@ -140,7 +173,7 @@ export class FarmsEmployeesService {
         },
       }),
       this.prisma.farmUser.count({ where }),
-    ]);
+    ])) as [FarmUserWithDeepUser[], number];
 
     const sanitizedList: SanitizedFarmEmployee[] = farmUsers.map((fu) => {
       const permissions = Array.from(
@@ -168,7 +201,6 @@ export class FarmsEmployeesService {
           phone: fu.user.phone,
           profileImageUrl: fu.user.profileImageUrl,
           status: fu.user.status,
-          isEmailVerified: fu.user.isEmailVerified,
           lastLoginAt: fu.user.lastLoginAt,
           createdAt: fu.user.createdAt,
           permissions,
@@ -200,19 +232,19 @@ export class FarmsEmployeesService {
       this.prisma,
       userId,
       farmId,
-      [FarmUserRole.OWNER, FarmUserRole.MANAGER],
+      ['OWNER', 'MANAGER'],
     );
 
     const normalizedEmail = dto.email.toLowerCase().trim();
-    const assignedFarmRole = dto.role || FarmUserRole.WORKER;
+    const assignedFarmRole = dto.role || 'WORKER';
 
-    if (!isOwner && assignedFarmRole === FarmUserRole.OWNER) {
+    if (!isOwner && assignedFarmRole === 'OWNER') {
       throw new ForbiddenException(
         'Only the farm owner or system admin can assign the OWNER role.',
       );
     }
 
-    if (!isOwner && assignedFarmRole === FarmUserRole.MANAGER) {
+    if (!isOwner && assignedFarmRole === 'MANAGER') {
       throw new ForbiddenException(
         'Only the farm owner can appoint a Manager.',
       );
@@ -232,19 +264,20 @@ export class FarmsEmployeesService {
     }
 
     // Check if user already exists
-    const existingUser = await this.prisma.user.findFirst({
+    const existingUser: User | null = await this.prisma.user.findFirst({
       where: { email: normalizedEmail, deletedAt: null },
     });
 
     if (existingUser) {
-      const existingMembership = await this.prisma.farmUser.findUnique({
-        where: {
-          farmId_userId: {
-            farmId,
-            userId: existingUser.id,
+      const existingMembership: FarmUser | null =
+        await this.prisma.farmUser.findUnique({
+          where: {
+            farmId_userId: {
+              farmId,
+              userId: existingUser.id,
+            },
           },
-        },
-      });
+        });
 
       if (existingMembership) {
         throw new ConflictException(
@@ -253,14 +286,14 @@ export class FarmsEmployeesService {
       }
 
       // Add existing user to this farm
-      await this.prisma.$transaction(async (tx) => {
+      await this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
         await tx.farmUser.create({
           data: {
             farmId,
             userId: existingUser.id,
             role: assignedFarmRole,
             permissions: dto.permissions || [],
-            status: FarmUserStatus.ACTIVE,
+            status: 'ACTIVE',
           },
         });
 
@@ -282,8 +315,8 @@ export class FarmsEmployeesService {
     // New user account creation
     const passwordHash = await bcrypt.hash(dto.password, 10);
 
-    const workerRoleName: RoleName = 'WORKER';
-    const defaultRole = await this.prisma.role.upsert({
+    const workerRoleName = 'WORKER';
+    const defaultRole: Role = await this.prisma.role.upsert({
       where: { name: workerRoleName },
       update: {},
       create: {
@@ -292,71 +325,72 @@ export class FarmsEmployeesService {
       },
     });
 
-    const createdFarmUser = await this.prisma.$transaction(async (tx) => {
-      // 1. Create User
-      const newUser = await tx.user.create({
-        data: {
-          firstName: dto.firstName.trim(),
-          lastName: dto.lastName.trim(),
-          email: normalizedEmail,
-          phone: dto.phone?.trim() || null,
-          profileImageUrl: dto.profileImageUrl || null,
-          passwordHash,
-          status: UserStatus.ACTIVE,
-          isEmailVerified: true,
-        },
-      });
+    const createdFarmUser = await this.prisma.$transaction(
+      async (tx: Prisma.TransactionClient) => {
+        // 1. Create User
+        const newUser = await tx.user.create({
+          data: {
+            firstName: dto.firstName.trim(),
+            lastName: dto.lastName.trim(),
+            email: normalizedEmail,
+            phone: dto.phone?.trim() || null,
+            profileImageUrl: dto.profileImageUrl || null,
+            passwordHash,
+            status: 'ACTIVE',
+          },
+        });
 
-      // 2. Link Role
-      await tx.userRole.create({
-        data: {
-          userId: newUser.id,
-          roleId: defaultRole.id,
-        },
-      });
+        // 2. Link Role
+        await tx.userRole.create({
+          data: {
+            userId: newUser.id,
+            roleId: defaultRole.id,
+          },
+        });
 
-      // 3. Link Farm Membership
-      const farmUser = await tx.farmUser.create({
-        data: {
-          farmId,
-          userId: newUser.id,
-          role: assignedFarmRole,
-          permissions: dto.permissions || [],
-          status: FarmUserStatus.ACTIVE,
-        },
-      });
+        // 3. Link Farm Membership
+        const farmUser = await tx.farmUser.create({
+          data: {
+            farmId,
+            userId: newUser.id,
+            role: assignedFarmRole,
+            permissions: dto.permissions || [],
+            status: 'ACTIVE',
+          },
+        });
 
-      // 4. Default Notifications
-      await tx.notificationPreference.create({
-        data: {
-          userId: newUser.id,
-          vaccinationNotifications: true,
-          feedingNotifications: true,
-          healthNotifications: true,
-          documentNotifications: true,
-          syncNotifications: true,
-        },
-      });
+        // 4. Default Notifications
+        await tx.notificationPreference.create({
+          data: {
+            userId: newUser.id,
+            vaccinationNotifications: true,
+            feedingNotifications: true,
+            healthNotifications: true,
+            documentNotifications: true,
+            syncNotifications: true,
+          },
+        });
 
-      // 5. Audit Log
-      await createAuditRecord(
-        tx,
-        userId,
-        'ADD_FARM_EMPLOYEE',
-        'FarmUser',
-        newUser.id,
-        null,
-        {
-          farmId,
-          userId: newUser.id,
-          role: assignedFarmRole,
-          email: normalizedEmail,
-        },
-        auditContext,
-      );
+        // 5. Audit Log
+        await createAuditRecord(
+          tx,
+          userId,
+          'ADD_FARM_EMPLOYEE',
+          'FarmUser',
+          newUser.id,
+          null,
+          {
+            farmId,
+            userId: newUser.id,
+            role: assignedFarmRole,
+            email: normalizedEmail,
+          },
+          auditContext,
+        );
 
-      return farmUser;
-    });
+        return farmUser;
+      },
+    );
 
     // Asynchronously send welcome email without blocking transaction
     this.mailService
@@ -387,7 +421,7 @@ export class FarmsEmployeesService {
       this.prisma,
       userId,
       farmId,
-      [FarmUserRole.OWNER, FarmUserRole.MANAGER],
+      ['OWNER', 'MANAGER'],
     );
 
     if (userId === employeeId && dto.role) {
@@ -396,13 +430,13 @@ export class FarmsEmployeesService {
       );
     }
 
-    if (!isOwner && dto.role === FarmUserRole.OWNER) {
+    if (!isOwner && dto.role === 'OWNER') {
       throw new ForbiddenException(
         'Only the farm owner or system admin can assign the OWNER role.',
       );
     }
 
-    if (!isOwner && dto.role === FarmUserRole.MANAGER) {
+    if (!isOwner && dto.role === 'MANAGER') {
       throw new ForbiddenException(
         'Only the farm owner can appoint a Manager.',
       );
@@ -421,23 +455,19 @@ export class FarmsEmployeesService {
     }
 
     // Protect farm owner from deactivation or role downgrade
-    if (employeeId === farm.ownerId && dto.status === FarmUserStatus.INACTIVE) {
+    if (employeeId === farm.ownerId && dto.status === 'INACTIVE') {
       throw new BadRequestException(
         'Cannot deactivate the farm facility owner.',
       );
     }
 
-    if (
-      employeeId === farm.ownerId &&
-      dto.role &&
-      dto.role !== FarmUserRole.OWNER
-    ) {
+    if (employeeId === farm.ownerId && dto.role && dto.role !== 'OWNER') {
       throw new BadRequestException(
         'Cannot change farm owner role. Use transfer ownership endpoint instead.',
       );
     }
 
-    await this.prisma.$transaction(async (tx) => {
+    await this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       // 1. Update FarmUser role, status, & permissions
       if (dto.role || dto.status || dto.permissions !== undefined) {
         await tx.farmUser.updateMany({
@@ -472,16 +502,24 @@ export class FarmsEmployeesService {
               profileImageUrl: dto.profileImageUrl || null,
             }),
             ...(dto.status && {
-              status:
-                dto.status === FarmUserStatus.ACTIVE
-                  ? UserStatus.ACTIVE
-                  : UserStatus.INACTIVE,
+              status: dto.status === 'ACTIVE' ? 'ACTIVE' : 'INACTIVE',
             }),
           },
         });
       }
 
       // 3. Audit Log
+      const auditPayload: Record<string, unknown> = {
+        ...(dto.role !== undefined && { role: dto.role }),
+        ...(dto.status !== undefined && { status: dto.status }),
+        ...(dto.permissions !== undefined && { permissions: dto.permissions }),
+        ...(dto.firstName !== undefined && { firstName: dto.firstName }),
+        ...(dto.lastName !== undefined && { lastName: dto.lastName }),
+        ...(dto.phone !== undefined && { phone: dto.phone }),
+        ...(dto.profileImageUrl !== undefined && {
+          profileImageUrl: dto.profileImageUrl,
+        }),
+      };
       await createAuditRecord(
         tx,
         userId,
@@ -489,7 +527,7 @@ export class FarmsEmployeesService {
         'FarmUser',
         employeeId,
         null,
-        dto as Record<string, unknown>,
+        auditPayload,
         auditContext,
       );
     });
@@ -502,11 +540,8 @@ export class FarmsEmployeesService {
     employeeId: string,
     newPassword: string,
     auditContext?: AuditContext,
-  ) {
-    await verifyFarmAccess(this.prisma, userId, farmId, [
-      FarmUserRole.OWNER,
-      FarmUserRole.MANAGER,
-    ]);
+  ): Promise<{ success: boolean; message: string }> {
+    await verifyFarmAccess(this.prisma, userId, farmId, ['OWNER', 'MANAGER']);
 
     if (!newPassword || newPassword.length < 6) {
       throw new BadRequestException(
@@ -516,7 +551,7 @@ export class FarmsEmployeesService {
 
     const passwordHash = await bcrypt.hash(newPassword, 10);
 
-    await this.prisma.$transaction(async (tx) => {
+    await this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       await tx.user.update({
         where: { id: employeeId },
         data: { passwordHash },
@@ -544,12 +579,12 @@ export class FarmsEmployeesService {
     farmId: string,
     employeeId: string,
     auditContext?: AuditContext,
-  ) {
+  ): Promise<{ success: boolean; message: string }> {
     const { farm, isOwner } = await verifyFarmAccess(
       this.prisma,
       userId,
       farmId,
-      [FarmUserRole.OWNER, FarmUserRole.MANAGER],
+      ['OWNER', 'MANAGER'],
     );
 
     if (employeeId === farm.ownerId) {
@@ -558,15 +593,15 @@ export class FarmsEmployeesService {
       );
     }
 
-    const targetUser = await this.prisma.farmUser.findUnique({
+    const targetUser: FarmUser | null = await this.prisma.farmUser.findUnique({
       where: { farmId_userId: { farmId, userId: employeeId } },
     });
 
-    if (!isOwner && targetUser?.role === FarmUserRole.MANAGER) {
+    if (!isOwner && targetUser?.role === 'MANAGER') {
       throw new ForbiddenException('Only the farm owner can remove a Manager.');
     }
 
-    await this.prisma.$transaction(async (tx) => {
+    await this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       await tx.farmUser.deleteMany({
         where: { farmId, userId: employeeId },
       });
@@ -593,7 +628,7 @@ export class FarmsEmployeesService {
     farmId: string,
     dto: TransferOwnershipDto,
     auditContext?: AuditContext,
-  ) {
+  ): Promise<{ success: boolean; message: string; farm: Farm }> {
     const { farm } = await verifyFarmAccess(this.prisma, userId, farmId);
 
     if (farm.ownerId !== userId) {
@@ -608,7 +643,7 @@ export class FarmsEmployeesService {
       );
     }
 
-    const newOwner = await this.prisma.user.findUnique({
+    const newOwner: User | null = await this.prisma.user.findUnique({
       where: { id: dto.newOwnerId, deletedAt: null },
     });
 
@@ -616,61 +651,63 @@ export class FarmsEmployeesService {
       throw new NotFoundException('New owner user account not found.');
     }
 
-    const updated = await this.prisma.$transaction(async (tx) => {
-      // 1. Update Farm ownerId
-      const updatedFarm = await tx.farm.update({
-        where: { id: farmId },
-        data: { ownerId: dto.newOwnerId },
-      });
+    const updated = await this.prisma.$transaction(
+      async (tx: Prisma.TransactionClient) => {
+        // 1. Update Farm ownerId
+        const updatedFarm = await tx.farm.update({
+          where: { id: farmId },
+          data: { ownerId: dto.newOwnerId },
+        });
 
-      // 2. Demote previous owner to MANAGER in FarmUser
-      await tx.farmUser.upsert({
-        where: {
-          farmId_userId: {
+        // 2. Demote previous owner to MANAGER in FarmUser
+        await tx.farmUser.upsert({
+          where: {
+            farmId_userId: {
+              farmId,
+              userId,
+            },
+          },
+          update: { role: 'MANAGER' },
+          create: {
             farmId,
             userId,
+            role: 'MANAGER',
+            status: 'ACTIVE',
           },
-        },
-        update: { role: FarmUserRole.MANAGER },
-        create: {
-          farmId,
-          userId,
-          role: FarmUserRole.MANAGER,
-          status: FarmUserStatus.ACTIVE,
-        },
-      });
+        });
 
-      // 3. Promote new owner to OWNER in FarmUser
-      await tx.farmUser.upsert({
-        where: {
-          farmId_userId: {
+        // 3. Promote new owner to OWNER in FarmUser
+        await tx.farmUser.upsert({
+          where: {
+            farmId_userId: {
+              farmId,
+              userId: dto.newOwnerId,
+            },
+          },
+          update: { role: 'OWNER', status: 'ACTIVE' },
+          create: {
             farmId,
             userId: dto.newOwnerId,
+            role: 'OWNER',
+            status: 'ACTIVE',
           },
-        },
-        update: { role: FarmUserRole.OWNER, status: FarmUserStatus.ACTIVE },
-        create: {
+        });
+
+        // 4. Record Audit Log
+        await createAuditRecord(
+          tx,
+          userId,
+          'TRANSFER_FARM_OWNERSHIP',
+          'Farm',
           farmId,
-          userId: dto.newOwnerId,
-          role: FarmUserRole.OWNER,
-          status: FarmUserStatus.ACTIVE,
-        },
-      });
+          { ownerId: farm.ownerId },
+          { ownerId: dto.newOwnerId, reason: dto.reason || null },
+          auditContext,
+        );
 
-      // 4. Record Audit Log
-      await createAuditRecord(
-        tx,
-        userId,
-        'TRANSFER_FARM_OWNERSHIP',
-        'Farm',
-        farmId,
-        { ownerId: farm.ownerId },
-        { ownerId: dto.newOwnerId, reason: dto.reason || null },
-        auditContext,
-      );
-
-      return updatedFarm;
-    });
+        return updatedFarm;
+      },
+    );
 
     return {
       success: true,
@@ -678,7 +715,9 @@ export class FarmsEmployeesService {
       farm: updated,
     };
   }
-  async uploadEmployeePhoto(file?: Express.Multer.File) {
+  async uploadEmployeePhoto(
+    file?: Express.Multer.File,
+  ): Promise<{ success: boolean; imageUrl: string; publicId: string }> {
     if (!file) {
       throw new BadRequestException('No image file provided');
     }

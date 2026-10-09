@@ -109,7 +109,7 @@ export default function DashboardScreen() {
   };
 
   const navigateToAnimal = (animalId: string) => {
-    router.push(`/animals/${animalId}` as any);
+    router.push(`/animals/${animalId}` as never);
   };
 
   return (
@@ -136,7 +136,7 @@ export default function DashboardScreen() {
           <TouchableOpacity
             className="flex-row bg-[#10a37f] py-3.5 rounded-xl items-center justify-center mb-4 shadow-md"
             style={{ shadowColor: "#10a37f", elevation: 4 }}
-            onPress={() => router.push("/animals/register" as any)}
+            onPress={() => router.push("/animals/register" as never)}
           >
             <MaterialCommunityIcons
               name="cow"
@@ -153,7 +153,7 @@ export default function DashboardScreen() {
         <TouchableOpacity
           className="bg-white rounded-xl p-4 items-center shadow-sm border border-slate-200"
           style={{ elevation: 2 }}
-          onPress={() => router.push("/(tabs)/scanner" as any)}
+          onPress={() => router.push("/(tabs)/scanner" as never)}
         >
           <MaterialCommunityIcons
             name="qrcode-scan"
@@ -278,7 +278,7 @@ export default function DashboardScreen() {
                 }}
               >
                 <MaterialCommunityIcons
-                  name={getActivityIcon(activity.activityType) as any}
+                  name={getActivityIcon(activity.activityType) as never}
                   size={24}
                   color={getActivityColor(activity.activityType)}
                 />

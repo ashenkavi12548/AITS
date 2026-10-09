@@ -1,0 +1,7 @@
+{
+  "eslint.workingDirectories": [
+    "./aits-backend",
+    "./aits-frontend",
+    "./aits-mobile"
+  ]
+}

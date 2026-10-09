@@ -1,6 +1,14 @@
 import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
-import { Farm, FarmUserStatus, Prisma } from '@prisma/client';
+import {
+  Farm,
+  FarmUserStatus,
+  FarmUserRole,
+  AnimalStatus,
+  AnimalGender,
+  MilkingSession,
+  Prisma,
+} from '@prisma/client';
 import { SanitizedFarmEmployee, PaginatedResult } from '../types/farms.types';
 import { verifyFarmAccess } from '../utils/farms.utils';
 import { FarmQueryDto } from '../dto';
@@ -114,15 +122,22 @@ export class FarmsQueryService {
       },
     };
 
+    const sortOrder: Prisma.SortOrder =
+      query.sortOrder === 'asc' ? 'asc' : 'desc';
     const sortBy = query.sortBy || 'createdAt';
-    const sortOrder = query.sortOrder || 'desc';
+    const orderBy: Prisma.FarmOrderByWithRelationInput =
+      sortBy === 'name'
+        ? { name: sortOrder }
+        : sortBy === 'registrationNumber'
+          ? { registrationNumber: sortOrder }
+          : { createdAt: sortOrder };
 
     const [farms, total] = await Promise.all([
       this.prisma.farm.findMany({
         where,
         skip,
         take: limit,
-        orderBy: { [sortBy]: sortOrder },
+        orderBy,
         include: {
           owner: {
             select: {
@@ -246,7 +261,7 @@ export class FarmsQueryService {
       }),
     ]);
 
-    const sessionMap: Record<string, number> = {};
+    const sessionMap: Partial<Record<MilkingSession, number>> = {};
     for (const sessionItem of milkSessionAggregation) {
       if (sessionItem.milkingSession) {
         sessionMap[sessionItem.milkingSession] =
@@ -254,17 +269,17 @@ export class FarmsQueryService {
       }
     }
 
-    const statusMap: Record<string, number> = {};
+    const statusMap: Partial<Record<AnimalStatus, number>> = {};
     for (const statusItem of animalsByStatus) {
       statusMap[statusItem.status] = statusItem._count.status;
     }
 
-    const genderMap: Record<string, number> = {};
+    const genderMap: Partial<Record<AnimalGender, number>> = {};
     for (const genderItem of animalsByGender) {
       genderMap[genderItem.gender] = genderItem._count.gender;
     }
 
-    const roleMap: Record<string, number> = {};
+    const roleMap: Partial<Record<FarmUserRole, number>> = {};
     for (const roleItem of staffByRole) {
       roleMap[roleItem.role] = roleItem._count.role;
     }
@@ -304,7 +319,6 @@ export class FarmsQueryService {
             phone: true,
             profileImageUrl: true,
             status: true,
-            isEmailVerified: true,
             lastLoginAt: true,
             createdAt: true,
             userRoles: {
@@ -350,7 +364,6 @@ export class FarmsQueryService {
         phone: fu.user.phone,
         profileImageUrl: fu.user.profileImageUrl,
         status: fu.user.status,
-        isEmailVerified: fu.user.isEmailVerified,
         lastLoginAt: fu.user.lastLoginAt,
         createdAt: fu.user.createdAt,
         permissions,

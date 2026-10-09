@@ -71,7 +71,8 @@ export function useAnimalTagSearch(debounceMs = 300): UseAnimalTagSearchReturn {
           setResults(response.data || []);
           setIsLoading(false);
         }
-      } catch (err: unknown) {
+      } catch (error_unk: unknown) {
+      const err = error_unk as { response?: { data?: { message?: string | string[] } }; message?: string };
         if (!controller.signal.aborted) {
           const message =
             err instanceof Error ? err.message : 'Failed to search animals';

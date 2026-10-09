@@ -36,7 +36,7 @@ export default function AnimalTraceabilityScreen() {
     }
   };
 
-  const renderItem = ({ item, index }: { item: any; index: number }) => {
+  const renderItem = ({ item, index }: { item: import("@/types/animals").AnimalHistoryItem; index: number }) => {
     const isLast = index === (data?.length || 0) - 1;
 
     return (
@@ -53,13 +53,12 @@ export default function AnimalTraceabilityScreen() {
         </View>
         <View style={styles.card}>
           <Text style={styles.date}>
-            {new Date(item.timestamp).toLocaleString()}
+            {new Date(item.createdAt).toLocaleString()}
           </Text>
           <Text style={styles.action}>{item.action.replace(/_/g, " ")}</Text>
-          {item.notes && <Text style={styles.notes}>{item.notes}</Text>}
-          {item.performedBy && (
+          {item.user && (
             <Text style={styles.user}>
-              By: {item.performedBy.firstName} {item.performedBy.lastName}
+              By: {item.user.name}
             </Text>
           )}
         </View>

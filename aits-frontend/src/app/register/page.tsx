@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm, useWatch } from "react-hook-form";
@@ -16,26 +16,20 @@ import {
   Phone,
   Building2,
   MapPin,
-  CheckCircle2,
   AlertCircle,
   Loader2,
   ArrowRight,
   ArrowLeft,
   Eye,
   EyeOff,
-  RefreshCw,
-  KeyRound,
 } from "lucide-react";
 import { useAuthStore } from "@/stores/useAuthStore";
-import { authService } from "@/services/auth.service";
 import AitsLogo from "@/components/common/AitsLogo";
 
 export default function RegisterPage() {
   const router = useRouter();
   const {
     register,
-    isAuthenticated,
-    isInitialized,
     isLoading,
     error,
     clearError,
@@ -48,7 +42,6 @@ export default function RegisterPage() {
     handleSubmit: formHandleSubmit,
     trigger,
     control,
-    getValues,
     formState: { errors },
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
@@ -574,7 +567,7 @@ export default function RegisterPage() {
                     {isLoading ? (
                       <>
                         <Loader2 className="w-4 h-4 animate-spin" />
-                        <span>Sending Verification Code...</span>
+                        <span>Creating Account...</span>
                       </>
                     ) : (
                       <>

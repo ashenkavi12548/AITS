@@ -48,7 +48,7 @@ const SessionSelector = ({
             onPress={() => setSession(s.id)}
           >
             <Ionicons
-              name={s.icon as any}
+              name={s.icon as never}
               size={16}
               color={session === s.id ? Colors.dark.primary : "#475569"}
               style={{ marginRight: 6 }}
@@ -154,7 +154,8 @@ export default function LogMilkScreen() {
         text2: "Milk production logged successfully.",
       });
       router.back();
-    } catch (err: any) {
+    } catch (error_unk: unknown) {
+      const err = error_unk as { response?: { data?: { message?: string | string[] } }; message?: string };
       const msg =
         err.response?.data?.message || "Failed to log milk production.";
       Toast.show({

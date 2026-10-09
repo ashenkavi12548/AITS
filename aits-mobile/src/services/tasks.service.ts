@@ -88,7 +88,7 @@ export interface UpdateTaskDto {
 
 export const tasksService = {
   getTasks: async (farmId: string, userId?: string, status?: string): Promise<Task[]> => {
-    const params: any = { farmId };
+    const params: Record<string, unknown> = { farmId };
     if (userId) params.userId = userId;
     if (status) params.status = status;
     const response = await api.get<Task[]>('/api/v1/tasks', { params });

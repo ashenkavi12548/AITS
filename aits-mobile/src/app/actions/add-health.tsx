@@ -23,7 +23,7 @@ const SEVERITY_OPTIONS = ["MILD", "MODERATE", "SEVERE", "CRITICAL"] as const;
 export default function AddHealthScreen() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { activeFarmId } = useAuthStore();
+  useAuthStore();
 
   const [recordType, setRecordType] = useState<RecordType>("DIAGNOSIS");
   const [animalTag, setAnimalTag] = useState("");
