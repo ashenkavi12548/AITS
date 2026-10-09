@@ -135,6 +135,10 @@ export class GlobalExceptionFilter implements ExceptionFilter {
             status = HttpStatus.BAD_REQUEST;
             errorName = 'Bad Request';
             code = 'DATABASE_QUERY_ERROR';
+            this.logger.error(
+              `[Prisma ${exception.code}] ${exception.message}`,
+              exception.stack,
+            );
             message = `Invalid database operation requested.`;
           }
         }
