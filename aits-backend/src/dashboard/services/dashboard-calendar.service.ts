@@ -7,7 +7,7 @@ import {
 import { PrismaService } from '../../database/prisma.service';
 import { DashboardHelpersService } from './dashboard-helpers.service';
 import { NotificationsService } from '../../notifications/notifications.service';
-import { MailService } from '../../mail/mail.service';
+
 import {
   Animal,
   VaccinationStatus,
@@ -47,7 +47,6 @@ export class DashboardCalendarService {
     private readonly prisma: PrismaService,
     private readonly helpers: DashboardHelpersService,
     private readonly notificationsService: NotificationsService,
-    private readonly mailService: MailService,
   ) {}
 
   async createScheduleEvent(dto: CreateScheduleEventDto, userId?: string) {
@@ -204,27 +203,6 @@ export class DashboardCalendarService {
         .catch((err: unknown) => {
           console.error('Notification dispatch failed', err);
         });
-    }
-
-    if (dto.sendEmail && userId) {
-      try {
-        const user = await this.prisma.user.findUnique({
-          where: { id: userId },
-        });
-        if (user?.email) {
-          await this.mailService.sendScheduleAlertEmail({
-            to: user.email,
-            recipientName: user.firstName,
-            eventTitle: dto.title,
-            eventType: dto.eventType,
-            animalNumber: animal?.animalNumber || 'N/A',
-            scheduledDate: parsedDate.toISOString(),
-            notes: dto.notes,
-          });
-        }
-      } catch (error: unknown) {
-        console.error('Mail delivery fallback triggered', error);
-      }
     }
 
     return {

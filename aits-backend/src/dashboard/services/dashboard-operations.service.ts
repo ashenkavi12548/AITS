@@ -1,6 +1,6 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
-import { MailService } from '../../mail/mail.service';
+
 import { DashboardHelpersService } from './dashboard-helpers.service';
 import { NotificationsService } from '../../notifications/notifications.service';
 import { AnimalStatus, MilkingSession, AnimalGender } from '@prisma/client';
@@ -10,7 +10,7 @@ import { QuickAddAnimalDto } from '../dto/quick-add-animal.dto';
 export class DashboardOperationsService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly mailService: MailService,
+
     private readonly helpers: DashboardHelpersService,
     private readonly notificationsService: NotificationsService,
   ) {}

@@ -28,7 +28,7 @@ import { SynchronizationModule } from './synchronization/synchronization.module'
 import { AuditModule } from './audit/audit.module';
 import { ReportsModule } from './reports/reports.module';
 import { DashboardModule } from './dashboard/dashboard.module';
-import { MailModule } from './mail/mail.module';
+
 import { CloudinaryModule } from './common/cloudinary/cloudinary.module';
 import { TraceabilityModule } from './traceability/traceability.module';
 import { TasksModule } from './tasks/tasks.module';
@@ -38,7 +38,7 @@ import { BusinessRulesModule } from './common/business-rules/business-rules.modu
   imports: [
     BusinessRulesModule,
     CloudinaryModule,
-    MailModule,
+
     PrismaModule,
     AuthModule,
     UsersModule,

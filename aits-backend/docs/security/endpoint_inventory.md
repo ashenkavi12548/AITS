@@ -19,7 +19,7 @@
 | AuthController | verifyOtp | Post | verify-otp | NONE | true | false |
 | AuthController | verifyEmail | Post | verify-email | NONE | true | false |
 | AuthController | verifyEmailGet | Get | verify-email | NONE | true | false |
-| AuthController | resendVerification | Post | resend-verification | NONE | true | false |
+
 | AuthController | login | Post | login | NONE | true | false |
 | AuthController | refresh | Post | refresh | NONE | true | false |
 | AuthController | getProfile | Get | me | NONE | true | false |

@@ -202,7 +202,7 @@ function LoginContent() {
                     type="button"
                     onClick={() =>
                       toast(
-                        'Password reset: Farm workers should contact their farm owner. Farm owners can use email verification recovery.',
+                        'Password reset: Please contact your system administrator or farm owner.',
                         { icon: 'ℹ️', duration: 6000 },
                       )
                     }

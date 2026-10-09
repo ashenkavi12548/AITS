@@ -150,7 +150,7 @@ ${getBlock('async deactivateFarm(', 'async getFarmEmployees(')}
 `;
 
 // 5. Employees Service
-const employeesService = `${commonImports}import { MailService } from '../../mail/mail.service';
+const employeesService = `${commonImports}
 import { CloudinaryService } from '../../common/cloudinary/cloudinary.service';
 import * as bcrypt from 'bcrypt';
 import {
@@ -165,7 +165,7 @@ export class FarmsEmployeesService {
   private readonly logger = new Logger(FarmsEmployeesService.name);
   constructor(
     private readonly prisma: PrismaService,
-    private readonly mailService: MailService,
+
     private readonly cloudinaryService: CloudinaryService,
   ) {}
 

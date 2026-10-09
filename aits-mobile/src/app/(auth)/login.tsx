@@ -156,9 +156,7 @@ export default function LoginScreen() {
             <View style={styles.inputGroup}>
               <View style={styles.passwordHeader}>
                 <Text style={styles.label}>Password</Text>
-                <TouchableOpacity>
-                  <Text style={styles.forgotPassword}>Forgot password?</Text>
-                </TouchableOpacity>
+
               </View>
               <View style={styles.inputWrapper}>
                 <Feather

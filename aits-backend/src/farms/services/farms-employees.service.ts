@@ -14,7 +14,7 @@ import {
   AuditContext,
 } from '../types/farms.types';
 import { createAuditRecord, verifyFarmAccess } from '../utils/farms.utils';
-import { MailService } from '../../mail/mail.service';
+
 import { CloudinaryService } from '../../common/cloudinary/cloudinary.service';
 import * as bcrypt from 'bcrypt';
 import {
@@ -29,7 +29,7 @@ export class FarmsEmployeesService {
   private readonly logger = new Logger(FarmsEmployeesService.name);
   constructor(
     private readonly prisma: PrismaService,
-    private readonly mailService: MailService,
+
     private readonly cloudinaryService: CloudinaryService,
   ) {}
 
@@ -391,22 +391,6 @@ export class FarmsEmployeesService {
         return farmUser;
       },
     );
-
-    // Asynchronously send welcome email without blocking transaction
-    this.mailService
-      .sendEmployeeWelcome({
-        to: normalizedEmail,
-        firstName: dto.firstName.trim(),
-        farmName: farm.name,
-        role: assignedFarmRole,
-        temporaryPassword: dto.password,
-      })
-      .catch((err: unknown) => {
-        const msg = err instanceof Error ? err.message : String(err);
-        this.logger.warn(
-          `Failed to send welcome email to ${normalizedEmail}: ${msg}`,
-        );
-      });
 
     return this.getFarmEmployeeById(farmId, createdFarmUser.userId);
   }
