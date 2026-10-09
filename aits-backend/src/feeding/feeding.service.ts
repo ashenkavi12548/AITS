@@ -12,10 +12,36 @@ export class FeedingService {
   constructor(private readonly prisma: PrismaService) {}
 
   async getFeedTypes() {
-    return this.prisma.feedType.findMany({
+    let feedTypes = await this.prisma.feedType.findMany({
       where: { deletedAt: null },
       orderBy: { name: 'asc' },
     });
+
+    if (feedTypes.length === 0) {
+      await this.prisma.feedType.createMany({
+        data: [
+          { name: 'Grass', description: 'Fresh pasture grass', unit: 'kg' },
+          { name: 'Hay', description: 'Dried grass/legume', unit: 'kg' },
+          { name: 'Silage', description: 'Fermented forage', unit: 'kg' },
+          {
+            name: 'Grain Concentrate',
+            description: 'Energy dense grain mix',
+            unit: 'kg',
+          },
+          {
+            name: 'Mineral Supplement',
+            description: 'Essential minerals and vitamins',
+            unit: 'g',
+          },
+        ],
+      });
+      feedTypes = await this.prisma.feedType.findMany({
+        where: { deletedAt: null },
+        orderBy: { name: 'asc' },
+      });
+    }
+
+    return feedTypes;
   }
 
   async getAllFeedingRecords(userId: string) {
