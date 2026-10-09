@@ -125,7 +125,8 @@ export class GlobalExceptionFilter implements ExceptionFilter {
             'The requested change would violate a required relationship between resources.';
           break;
         }
-        case 'P2021': {
+        case 'P2021':
+        case 'P2022': {
           status = HttpStatus.INTERNAL_SERVER_ERROR;
           errorName = 'Internal Server Error';
           code = 'DATABASE_SCHEMA_MISMATCH';
