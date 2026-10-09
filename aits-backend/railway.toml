@@ -3,6 +3,6 @@ builder = "RAILPACK"
 buildCommand = "npx prisma generate && npm run build"
 
 [deploy]
-preDeployCommand = ["npx prisma migrate deploy"]
+preDeployCommand = "npx prisma migrate deploy"
 startCommand = "npm run start:prod"
 restartPolicyType = "ON_FAILURE"

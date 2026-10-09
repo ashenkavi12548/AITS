@@ -125,6 +125,18 @@ export class GlobalExceptionFilter implements ExceptionFilter {
             'The requested change would violate a required relationship between resources.';
           break;
         }
+        case 'P2021': {
+          status = HttpStatus.INTERNAL_SERVER_ERROR;
+          errorName = 'Internal Server Error';
+          code = 'DATABASE_SCHEMA_MISMATCH';
+          this.logger.error(
+            `[Prisma ${exception.code}] Critical Schema Error: ${exception.message}`,
+            exception.stack,
+          );
+          message =
+            'The server is improperly configured due to a database schema mismatch. Please contact the administrator.';
+          break;
+        }
         default: {
           if (exception.code.startsWith('P1')) {
             status = HttpStatus.SERVICE_UNAVAILABLE;
